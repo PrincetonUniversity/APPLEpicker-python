@@ -16,6 +16,8 @@ from tkinter import simpledialog
 import numpy as np
 import scipy as sci
 
+import svmpy
+svmpy.svmpy = svmpy
 from picking import picking
 
 import time
@@ -484,14 +486,14 @@ class apple(ttk.Frame):
     # pickParticles: main functionality                                                           #
     ###############################################################################################
     def pickParticles(self):
-        
+
         # check all inputs
-        if self.checkParameters()==1:
+        if self.checkParameters() == 1:
             return
 
         # get the names of all fines in input directory
         filenames = os.listdir(self.directory)
-        
+
         data = list()
         data.append(self.directory)
         data.append(self.pSize)
@@ -503,17 +505,17 @@ class apple(ttk.Frame):
         data.append(self.moa)
         data.append(self.cSize)
         data.append(self.directory_out)
-            
+
         pool = Pool(processes=self.proc)
         partial_func=partial(apple.process_micrograph, data)
         pool.map(partial_func, filenames)
         pool.terminate()
-        
-        # for now only
-#        apple.process_micrograph(data, filenames[1])
 
-            
-        
+        # for now only
+        #        apple.process_micrograph(data, filenames[1])
+
+
+
         # reset parameters in GUI
         messagebox.showinfo("APPLE picker", "particle picking complete")
         self.qVar.set('')
@@ -535,14 +537,15 @@ class apple(ttk.Frame):
         self.minSize = -1
         self.pSize = -1
         self.qSize = -1
-        
+
         return
         
     def process_micrograph(data, filenames):
         file_basename, file_extension = os.path.splitext(filenames)
 
         # parse filename and verify extension is ".mrc"
-        if file_extension=='.mrc':
+        if file_extension=='.mrc':  # todo use negative condition, use other func
+
                         
             myPicker = picking()
             

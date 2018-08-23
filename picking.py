@@ -12,6 +12,7 @@ from scipy import ndimage
 from scipy import misc
 from scipy import signal
 from commonFunctions import commonFunctions
+from skimage.transform import resize
 from sklearn import svm, preprocessing
 import pyfftw
 import time
@@ -20,6 +21,7 @@ from multiprocessing import Pool, Process
 from functools import partial
 
 from svmpy import svmpy
+
 
 class picking:
     particleSize = 0
@@ -32,8 +34,7 @@ class picking:
     containerSize = 0
     output_directory = ''
     filenames = ''
-    
-    
+
     def initializeParameters(self, particleSize, maxSize, minSize, querySize, tau1, tau2, MOA, containerSize, filenames, output_directory):
         self.particleSize = int(particleSize/2)
         self.maxSize = int(maxSize/4)
@@ -57,7 +58,7 @@ class picking:
         microImg = microImg.astype('float')
 
         microImg = microImg[99:-100, 99:-100]
-        microImg = misc.imresize(microImg, 0.5, mode='F', interp='cubic') # For file /Volumes/LaCie/data/10017_ctf/Falcon_2012_06_12-14_33_35_0.mrc:
+        microImg = misc.imresize(microImg, 0.5, mode='F', interp='cubic')   # For file /Volumes/LaCie/data/10017_ctf/Falcon_2012_06_12-14_33_35_0.mrc:
                                                                             # minimum micrograph element after resize is 5.4719e+04 (in absolute value) 
                                                                             # maximum deviation from Matlab's resize 351.9922. Maximum deviation after 
                                                                             # deleting the 100 outermost pixels (50 in the binned image) the max deviation 
