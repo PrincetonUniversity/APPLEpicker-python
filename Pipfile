@@ -4,6 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+ipython = "*"
+numpy = "*"
+scipy = "==0.19.1"
+mrcfile = "*"
+pyfftw = "*"
+sklearn = "*"
+svmpy = "*"
+scikit-image = "*"
 
 [dev-packages]
 
