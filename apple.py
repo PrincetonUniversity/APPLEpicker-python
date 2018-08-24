@@ -44,7 +44,7 @@ class Apple(object):
             self.max_particle_size = self.particle_size * 4
 
         if self.min_particle_size is None:
-            self.min_particle_size = int(self.query_image_size / 4)
+            self.min_particle_size = int(self.particle_size / 4)
 
         if self.minimum_overlap_amount is None:
             self.minimum_overlap_amount = int(self.particle_size / 10)
@@ -55,7 +55,7 @@ class Apple(object):
 
         if self.tau2 is None:
             self.tau2 = int(qBox * 30 / 100)
-
+            
         self.verify_input_values()
 
     def verify_input_values(self):
