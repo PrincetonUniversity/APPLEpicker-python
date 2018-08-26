@@ -20,7 +20,7 @@ from config import ApplePickerConfig
 
 class Apple(object):
 
-    def __init__(self, config):
+    def __init__(self, config, mrc_dir):
 
         self.particle_size = config.particle_size
         self.query_image_size = config.query_image_size
@@ -45,10 +45,17 @@ class Apple(object):
             self.max_particle_size = self.particle_size * 4
 
         if self.min_particle_size is None:
-            self.min_particle_size = int(self.particle_size / 4)
+            self.min_particle_size = int(self.particle_size / 6)
 
         if self.minimum_overlap_amount is None:
             self.minimum_overlap_amount = int(self.particle_size / 10)
+            
+        if self.output_dir is None:
+            path = os.path.dirname(mrc_dir)
+            abs_path = os.path.abspath(mrc_dir)
+            self.output_dir = abs_path.replace(path, 'star_dir')
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
 
         qBox = (4000 ** 2) / (self.query_image_size ** 2) * 4
         if self.tau1 is None:
@@ -58,6 +65,19 @@ class Apple(object):
             self.tau2 = int(qBox * 30 / 100)
 
         self.verify_input_values()
+        
+        print('parameter report'.center(os.get_terminal_size().columns) + '\n')
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "particle size", "value": self.particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "query image size", "value": self.query_image_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "maximum particle size", "value": self.max_particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "minimal particle size", "value": self.min_particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "tolerated overlap", "value": self.minimum_overlap_amount})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "training set size, particle", "value": self.tau1})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "training set size, noise", "value": self.tau2})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "container size", "value": self.container_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "processor pool size", "value": self.proc})
+        print('%(parameter)-40s %(value)-10s\n' %  {"parameter": "output directory", "value": self.output_dir})
+        print('progress report'.center(os.get_terminal_size().columns) + '\n')
 
     def verify_input_values(self):
         if not 1 <= self.max_particle_size <= 3000:
@@ -149,9 +169,6 @@ class Apple(object):
             # return .mrc file as a float64 array
             microImg = Picker.readMRC(picker)  # return a micrograph as an numpy array
 
-            # bin and filter micrograph
-            #            microImg = picking.initialManipulations(picker, microImg) # filtering, binning, etc.
-
             # compute score for query images
             score = Picker.queryScore(picker, microImg)  # compute score using normalized cross-correlations
             flag = True
@@ -162,9 +179,9 @@ class Apple(object):
 
                 # If all windows are classified identically, update tau_1 or tau_2
                 if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
-                    tau2 = tau2 + 1
+                    tau2 = tau2 + 500
                 elif np.array_equal(segmentation, np.zeros((segmentation.shape[0], segmentation.shape[1]))):
-                    tau1 = tau1 + 1
+                    tau1 = tau1 + 500
                 else:
                     flag = False
 
@@ -180,8 +197,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Apple Picker')
     parser.add_argument("-s", type=int, metavar='my_particle_size', help="size of particle")
     parser.add_argument("-o", type=str, metavar="output dir",
-                        help="name of output folder where (by default AP saves to input folder "
-                             "and adds 'picked' to original file name.)")
+                        help="name of output folder where star file should be saved "
+                             "(by default AP saves to input folder and adds 'picked' to original file name.)")
 
     parser.add_argument("mrcdir", metavar='input dir', type=str,
                         help="path to folder containing all mrc files to pick.")
@@ -199,9 +216,5 @@ if __name__ == "__main__":
             raise ConfigError("Output directory doesn't exist! {}".format(args.o))
         ApplePickerConfig.output_dir = args.o
 
-    apple = Apple(ApplePickerConfig)
-
-    if not os.path.exists(args.mrcdir):
-        raise ConfigError("Input directory doesn't exist! {}".format(args.mrcdir))
-
+    apple = Apple(ApplePickerConfig, args.mrcdir)
     apple.pick_particles(args.mrcdir)
