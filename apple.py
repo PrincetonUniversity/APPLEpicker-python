@@ -55,7 +55,7 @@ class Apple(object):
 
         if self.tau2 is None:
             self.tau2 = int(qBox * 30 / 100)
-            
+
         self.verify_input_values()
 
     def verify_input_values(self):
@@ -133,7 +133,7 @@ class Apple(object):
     def pick_particles(self, mrc_dir):
 
         # fetch all mrc files from mrc folder
-        filenames = [os.path.basename(file) for file in glob.glob(f'{mrc_dir}/*.mrc')]
+        filenames = [os.path.basename(file) for file in glob.glob('{}/*.mrc'.format(mrc_dir))]
         print("converting mrc files:", filenames)
 
         data = list()

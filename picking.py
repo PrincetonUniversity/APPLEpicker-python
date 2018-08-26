@@ -263,9 +263,4 @@ class Picker(object):
             
         return bwMask_p, bwMask_n
 
-        
 
-        
-
-        
-        
