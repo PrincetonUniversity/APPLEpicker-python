@@ -12,18 +12,12 @@ from scipy import ndimage
 from scipy import misc
 from scipy import signal
 from commonFunctions import commonFunctions
-from skimage.transform import resize
+# from skimage.transform import resize  # TODO use this one instead of Scipy.misc.imresize
 from sklearn import svm, preprocessing
 import pyfftw
-import time
-
-from multiprocessing import Pool, Process
-from functools import partial
-
-from svmpy import svmpy
 
 
-class picking:
+class Picker(object):
     particleSize = 0
     maxSize = 0
     minSize = 0
@@ -49,8 +43,7 @@ class picking:
         self.output_directory = output_directory
         
         self.querySize = self.querySize - self.querySize%2
-        
-    
+
     def readMRC(self):
         mrc = mrcfile.open(self.filenames, mode='r+', permissive=True) # ADD permissive=True
         microImg = mrc.data # difference from ReadMRC in matlab: transpose. Verified 6.21.2018
@@ -128,9 +121,9 @@ class picking:
     def runSVM(self, microImg, score):
         particleWindows = np.floor(self.tau1)
         nonNoiseWindows = np.ceil(self.tau2)
-        bwMask_p, bwMask_n = picking.getMaps(self, score, microImg, particleWindows, nonNoiseWindows)
+        bwMask_p, bwMask_n = Picker.getMaps(self, score, microImg, particleWindows, nonNoiseWindows)
  
-        x,y = commonFunctions.getTrainingSet(microImg, bwMask_p, bwMask_n, self.querySize)
+        x, y = commonFunctions.getTrainingSet(microImg, bwMask_p, bwMask_n, self.querySize)
         
 #        svm_obj = svmpy()
 #        svm_obj.train(x, y)
@@ -270,9 +263,4 @@ class picking:
             
         return bwMask_p, bwMask_n
 
-        
 
-        
-
-        
-        
