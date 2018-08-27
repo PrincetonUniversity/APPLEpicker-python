@@ -13,13 +13,14 @@ import os
 from functools import partial
 from multiprocessing import Pool
 
+from exceptions import ConfigError
 from picking import Picker
 from config import ApplePickerConfig
 
 
 class Apple(object):
 
-    def __init__(self, config):
+    def __init__(self, config, mrc_dir):
 
         self.particle_size = config.particle_size
         self.query_image_size = config.query_image_size
@@ -44,10 +45,17 @@ class Apple(object):
             self.max_particle_size = self.particle_size * 4
 
         if self.min_particle_size is None:
-            self.min_particle_size = int(self.particle_size / 4)
+            self.min_particle_size = int(self.particle_size / 6)
 
         if self.minimum_overlap_amount is None:
             self.minimum_overlap_amount = int(self.particle_size / 10)
+            
+        if self.output_dir is None:
+            path = os.path.dirname(mrc_dir)
+            abs_path = os.path.abspath(mrc_dir)
+            self.output_dir = abs_path.replace(path, 'star_dir')
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
 
         qBox = (4000 ** 2) / (self.query_image_size ** 2) * 4
         if self.tau1 is None:
@@ -57,84 +65,60 @@ class Apple(object):
             self.tau2 = int(qBox * 30 / 100)
 
         self.verify_input_values()
+        
+        print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "particle size", "value": self.particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "query image size", "value": self.query_image_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "maximum particle size", "value": self.max_particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "minimal particle size", "value": self.min_particle_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "tolerated overlap", "value": self.minimum_overlap_amount})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "training set size, particle", "value": self.tau1})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "training set size, noise", "value": self.tau2})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "container size", "value": self.container_size})
+        print('%(parameter)-40s %(value)-10s' %  {"parameter": "processor pool size", "value": self.proc})
+        print('%(parameter)-40s %(value)-10s\n' %  {"parameter": "output directory", "value": self.output_dir})
+        print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
 
     def verify_input_values(self):
-        # TODO
-        return
-        # if self.maxSize < 1:
-        #     messagebox.showerror("Error", "Max particle size must be a positive integer.")
-        #     return 1
-        # if self.maxSize > 3000:
-        #     messagebox.showerror("Error", "Max particle size is too large.")
-        #     return 1
-        #
-        # if self.qSize < 1:
-        #     messagebox.showerror("Error", "Query image size must be a positive integer.")
-        #     return 1
-        # if self.qSize > 3000:
-        #     messagebox.showerror("Error", "Query image size is too large.")
-        #     return 1
-        #
-        # if self.pSize < 5:
-        #     messagebox.showerror("Error", "Particle size too small.")
-        #     return 1
-        # if self.pSize > 3000:
-        #     messagebox.showerror("Error", "Particle size too large.")
-        #     return 1
-        #
-        # if self.minSize < 1:
-        #     messagebox.showerror("Error", "Min particle size must be a positive integer.")
-        #     return 1
-        # if self.minSize > 3000:
-        #     messagebox.showerror("Error", "Min particle size is too large.")
-        #     return 1
-        #
-        # if self.tau1 < 0:
-        #     messagebox.showerror("Error", "\u03C4\u2081 must be a positive integer.")
-        #     return 1
-        # if self.tau1 > (4000 / self.qSize * 2) ** 2:
-        #     messagebox.showerror("Error", "\u03C4\u2081 is too large.")
-        #     return 1
-        #
-        # if self.tau2 < 0:
-        #     messagebox.showerror("Error", "\u03C4\u2082 must be a positive integer.")
-        #     return 1
-        # if self.tau2 > (4000 / self.qSize * 2) ** 2:
-        #     messagebox.showerror("Error", "\u03C4\u2082 is too large.")
-        #     return 1
-        #
-        # if self.moa < 1:
-        #     messagebox.showerror("Error", "Min overlap must be a positive integer.")
-        #     return 1
-        # if self.moa > 3000:
-        #     messagebox.showerror("Error", "Min overlap is too large.")
-        #     return 1
-        #
-        # if self.cSize * 2 + 200 > 4000:
-        #     messagebox.showerror("Error", "Container size is too big.")
-        #     return 1
-        # if self.cSize < self.pSize:
-        #     messagebox.showerror("Error", "Container size must exceed particle size.")
-        #     return 1
-        # if self.pSize < self.qSize:
-        #     messagebox.showerror("Error", "Particle size must exceed query image size.")
-        #     return 1
-        # if self.dir_name_in == '':
-        #     messagebox.showerror("Error", "No input directory selected.")
-        #     return 1
-        # if self.dir_name_out == '':
-        #     messagebox.showerror("Error", "No output directory selected.")
-        #     return 1
-        # if self.proc < 1:
-        #     messagebox.showerror("Error", "Please select at least one processor.")
-        #     return 1
-        # return 0
+        if not 1 <= self.max_particle_size <= 3000:
+            raise ConfigError("Error", "Max particle size must be in range [1, 3000]!")
+
+        if not 1 <= self.query_image_size <= 3000:
+            raise ConfigError("Error", "Query image size must be in range [1, 3000]!")
+
+        if not 5 <= self.particle_size < 3000:
+            raise ConfigError("Error", "Particle size must be in range [5, 3000]!")
+
+        if not 1 <= self.min_particle_size < 3000:
+            raise ConfigError("Error", "Min particle size must be in range [1, 3000]!")
+
+        max_tau1_value = (4000 / self.query_image_size * 2) ** 2
+        if not 0 <= self.tau1 <= max_tau1_value:
+            raise ConfigError("Error", "\u03C4\u2081 must be a in range [0, {}]!".format(max_tau1_value))
+
+        max_tau2_value = (4000 / self.query_image_size * 2) ** 2
+        if not 0 <= self.tau2 <= max_tau2_value:
+            raise ConfigError("Error", "\u03C4\u2082 must be in range [0, {}]!".format(max_tau2_value))
+
+        if not 0 <= self.minimum_overlap_amount <= 3000:
+            raise ConfigError("Error", "overlap must be in range [0, 3000]!")
+
+        # max container_size condition is (conainter_size_max * 2 + 200 > 4000), which is 1900
+        if not self.particle_size <= self.container_size <= 1900:
+            raise ConfigError("Error", "Container size must be within range [{}, 1900]!".format(self.particle_size))
+
+        if self.particle_size < self.query_image_size:
+            raise ConfigError("Error", "Particle size must exceed query image size! particle size:{}, "
+                                       "query image size: {}".format(self.particle_size, self.query_image_size))
+
+        if self.proc < 1:
+            raise ConfigError("Error", "Please select at least one processor!")
 
     def pick_particles(self, mrc_dir):
 
         # fetch all mrc files from mrc folder
         filenames = [os.path.basename(file) for file in glob.glob('{}/*.mrc'.format(mrc_dir))]
-        print("converting mrc files:", filenames)
+        print("converting {} mrc files..".format(len(filenames)))
 
         data = list()
         data.append(mrc_dir)
@@ -146,7 +130,7 @@ class Apple(object):
         data.append(self.tau2)
         data.append(self.minimum_overlap_amount)
         data.append(self.container_size)
-        data.append(self.output_dir if self.output_dir else mrc_dir)
+        data.append(self.output_dir)
 
         pool = Pool(processes=self.proc)
         partial_func = partial(Apple.process_micrograph, data)
@@ -180,31 +164,27 @@ class Apple(object):
                                         directory_out)
 
             # update user
-            print('Processing ', end='')
-            nameParse = filenames.split("/")
-            print(nameParse[-1])
+            print('Processing {}..'.format(os.path.basename(filenames)))
 
             # return .mrc file as a float64 array
             microImg = Picker.readMRC(picker)  # return a micrograph as an numpy array
 
-            # bin and filter micrograph
-            #            microImg = picking.initialManipulations(picker, microImg) # filtering, binning, etc.
-
             # compute score for query images
             score = Picker.queryScore(picker, microImg)  # compute score using normalized cross-correlations
-            flag = True
 
-            while (flag):
+            while True:
                 # train SVM classifier and classify all windows in micrograph
                 segmentation = Picker.runSVM(picker, microImg, score)
 
                 # If all windows are classified identically, update tau_1 or tau_2
                 if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
-                    tau2 = tau2 + 1
+                    tau2 = tau2 + 500
+
                 elif np.array_equal(segmentation, np.zeros((segmentation.shape[0], segmentation.shape[1]))):
-                    tau1 = tau1 + 1
+                    tau1 = tau1 + 500
+
                 else:
-                    flag = False
+                    break
 
             # discard suspected artifacts
             segmentation = Picker.morphologyOps(picker, segmentation)
@@ -218,8 +198,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Apple Picker')
     parser.add_argument("-s", type=int, metavar='my_particle_size', help="size of particle")
     parser.add_argument("-o", type=str, metavar="output dir",
-                        help="name of output folder where (by default AP saves to input folder "
-                             "and adds 'picked' to original file name.)")
+                        help="name of output folder where star file should be saved "
+                             "(by default AP saves to input folder and adds 'picked' to original file name.)")
 
     parser.add_argument("mrcdir", metavar='input dir', type=str,
                         help="path to folder containing all mrc files to pick.")
@@ -233,7 +213,9 @@ if __name__ == "__main__":
         raise Exception("particle size is not defined! either set it with -s or adjust config.py")
 
     if args.o:
+        if not os.path.exists(args.o):
+            raise ConfigError("Output directory doesn't exist! {}".format(args.o))
         ApplePickerConfig.output_dir = args.o
 
-    apple = Apple(ApplePickerConfig)
+    apple = Apple(ApplePickerConfig, args.mrcdir)
     apple.pick_particles(args.mrcdir)
