@@ -11,126 +11,140 @@ import pyfftw
 
 class ApplePickerHelper:
     
-    def gaussian_filter(sizeFilter, std):
+    @classmethod
+    def gaussian_filter(cls, size_filter, std):
 
-        y,x = np.mgrid[-(sizeFilter-1)//2:(sizeFilter-1)//2+1,-(sizeFilter-1)//2:(sizeFilter-1)//2+1]
+        y, x = np.mgrid[-(size_filter - 1) // 2: (size_filter - 1) // 2 + 1,
+               -(size_filter - 1) // 2: (size_filter - 1) // 2 + 1]
 
         response = np.exp(-np.square(x) - np.square(y) / (2*(std**2)))/(np.sqrt(2*np.pi)*std)
         response[response < np.finfo('float').eps] = 0
         
-        response = response/response.sum() # Normalize so sum is 1
-            
-        return response
-    
-    def extract_windows(img, blockSize):
+        return response / response.sum()  # Normalize so sum is 1
+
+    @classmethod
+    def extract_windows(cls, img, block_size):
         
         # get size of image
-        Sx = img.shape[1]
-        Sy = img.shape[0]
-        
-        blockElements = blockSize**2
+        size_x = img.shape[1]
+        size_y = img.shape[0]
         
         # keep only the portion of the image that can be slpit into blocks with no remainder
-        truncX = Sx%blockSize
-        truncY = Sy%blockSize
+        trunc_x = size_x % block_size
+        trunc_y = size_y % block_size
         
-        img = img[:Sy-truncY, :Sx-truncX]
-        dim3_size = np.sqrt(np.prod(img.shape)//(blockSize**2))
+        img = img[: size_y - trunc_y, : size_x-trunc_x]
+        dim3_size = np.sqrt(np.prod(img.shape) // (block_size ** 2))
         
-        img = np.reshape(img, (blockSize,dim3_size.astype(int),blockSize, dim3_size.astype(int)), 'F')
-        img = np.transpose(img, (0,2,1,3))
+        img = np.reshape(img, (block_size, dim3_size.astype(int), block_size, dim3_size.astype(int)), 'F')
+        img = np.transpose(img, (0, 2, 1, 3))
         img = np.reshape(img, (img.shape[0]*img.shape[1], img.shape[2], img.shape[3]), 'F')
         img = np.reshape(img, (img.shape[0], img.shape[1]*img.shape[2]), 'F')
-        img = img.copy()
             
-        return img
+        return img.copy()
+
+    @classmethod
+    def extract_query(cls, img, block_size):
         
-    def extract_query(img, blockSize):
-        
-        Sx = img.shape[1]
-        Sy = img.shape[0]
+        size_x = img.shape[1]
+        size_y = img.shape[0]
         
         # keep only the portion of the image that can be slpit into blocks with no remainder
-        truncX = Sx%blockSize
-        truncY = Sy%blockSize
+        trunc_x = size_x % block_size
+        trunc_y = size_y % block_size
  
-        blocks = img[:Sy-truncY, :Sx-truncX]
+        blocks = img[: size_y - trunc_y, : size_x - trunc_x]
 
-        dim3_size = np.sqrt(np.prod(blocks.shape)//(blockSize**2))
-        blocks = np.reshape(blocks, (blockSize, dim3_size.astype(int) ,blockSize, dim3_size.astype(int)), 'F')
+        dim3_size = np.sqrt(np.prod(blocks.shape) // (block_size ** 2))
+        blocks = np.reshape(blocks, (block_size, dim3_size.astype(int), block_size, dim3_size.astype(int)), 'F')
 
-        blocks = np.transpose(blocks, (0,2,1,3))
+        blocks = np.transpose(blocks, (0, 2, 1, 3))
 
         blocks = np.reshape(blocks, (blocks.shape[0], blocks.shape[1], -1), 'F')
 
-        blocks = np.concatenate((blocks, np.concatenate((blocks[:,:,1:], np.reshape(blocks[:,:,0], (blocks.shape[0], blocks.shape[1], 1))), axis=2)), axis=0)        
+        blocks = np.concatenate(
+            (blocks,
+             np.concatenate((blocks[:, :, 1:],
+                             np.reshape(blocks[:, :, 0], (blocks.shape[0], blocks.shape[1], 1))), axis=2)), axis=0)
 
-        temp = np.concatenate((blocks[:,:,int(np.floor(2*img.shape[1]/2/blockSize)):], blocks[:,:,0:int(np.floor(2*img.shape[1]/2/blockSize))]), axis=2)
+        temp = np.concatenate((blocks[:, :, int(np.floor(2 * img.shape[1] / 2 / block_size)):],
+                               blocks[:, :, 0:int(np.floor(2 * img.shape[1] / 2 / block_size))]), axis=2)
+
         blocks = np.concatenate((blocks, temp), axis=1)
-        blocks = np.reshape(blocks, (2*blockSize, 2*blockSize, int(np.floor(2*img.shape[0]/2/blockSize)), int(np.floor(2*img.shape[1]/2/blockSize))), 'F')
+
+        blocks = np.reshape(blocks,
+                            (2 * block_size, 2 * block_size, int(np.floor(2 * img.shape[0] / 2 / block_size)),
+                             int(np.floor(2 * img.shape[1] / 2 / block_size))), 'F')
+
         blocks = blocks[:, :, 0:blocks.shape[2]-1, 0:blocks.shape[3]-1]
         
-        blocks = np.transpose(blocks, (2,3,0,1))
-        blocks = blocks.copy()
-        return blocks
-    
-    def extract_references(img, querySize, containerSize):
+        blocks = np.transpose(blocks, (2, 3, 0, 1))
+
+        return blocks.copy()
+
+    @classmethod
+    def extract_references(cls, img, query_size, container_size):
         
-        numContainersRow = int(np.floor(img.shape[0]/containerSize))
-        numContainersCol = int(np.floor(img.shape[1]/containerSize))
+        num_containers_row = int(np.floor(img.shape[0] / container_size))
+        num_containers_col = int(np.floor(img.shape[1] / container_size))
         
-        windows = np.zeros((numContainersRow*numContainersCol*4, querySize, querySize))
-        winIdx = 0
+        windows = np.zeros((num_containers_row * num_containers_col * 4, query_size, query_size))
+        win_idx = 0
         
-        meanAll, stdAll = ApplePickerHelper.moments(img, querySize)
+        mean_all, std_all = ApplePickerHelper.moments(img, query_size)
         
-        for yContain in range(1, numContainersRow+1):
-            for xContain in range(1, numContainersCol+1):
+        for y_contain in range(1, num_containers_row+1):
+            for x_contain in range(1, num_containers_col+1):
                 
-                temp = img[(yContain-1)*containerSize : min(img.shape[0], yContain*containerSize), 
-                           (xContain-1)*containerSize : min(img.shape[1], xContain*containerSize)]
+                temp = img[(y_contain-1) * container_size: min(img.shape[0], y_contain * container_size),
+                       (x_contain-1) * container_size: min(img.shape[1], x_contain * container_size)]
+
+                mean_contain = mean_all[
+                               (y_contain - 1) * container_size + query_size - 1: min(mean_all.shape[0] - query_size, (
+                                           y_contain - 1) * container_size + container_size),
+                               (x_contain - 1) * container_size + query_size - 1:min(mean_all.shape[1] - query_size, (
+                                           x_contain - 1) * container_size + container_size)]
+
+                std_contain = std_all[
+                             (y_contain - 1) * container_size + query_size - 1:min(mean_all.shape[0] - query_size, (
+                                         y_contain - 1) * container_size + container_size),
+                             (x_contain - 1) * container_size + query_size - 1:min(mean_all.shape[1] - query_size, (
+                                         x_contain - 1) * container_size + container_size)]
+                
+                y, x = np.where(mean_contain==mean_contain.max())
+                windows[win_idx, :, :] = temp[int(y):int(y + query_size), int(x):int(x + query_size)]
+                
+                win_idx = win_idx + 1
+                y, x = np.where(mean_contain==mean_contain.min())
+                windows[win_idx, :, :] = temp[int(y):int(y + query_size), int(x):int(x + query_size)]
+                
+                win_idx = win_idx + 1
+                y, x = np.where(std_contain==std_contain.max())
+                windows[win_idx, :, :] = temp[int(y):int(y + query_size), int(x):int(x + query_size)]
+                
+                win_idx = win_idx + 1
+                y, x = np.where(std_contain==std_contain.min())
+                windows[win_idx, :, :] = temp[int(y):int(y + query_size), int(x):int(x + query_size)]
+                
+                win_idx = win_idx + 1
+
+        return windows.copy()
+
+    @classmethod
+    def get_training_set(cls, micro_img, bw_mask_p, bw_mask_n, n):
         
-                meanContain = meanAll[(yContain-1)*containerSize+querySize-1:min(meanAll.shape[0]-querySize, (yContain-1)*containerSize+containerSize),
-                                      (xContain-1)*containerSize+querySize-1:min(meanAll.shape[1]-querySize, (xContain-1)*containerSize+containerSize)]
-                
-                
-                stdContain = stdAll[(yContain-1)*containerSize+querySize-1:min(meanAll.shape[0]-querySize, (yContain-1)*containerSize+containerSize),
-                                      (xContain-1)*containerSize+querySize-1:min(meanAll.shape[1]-querySize, (xContain-1)*containerSize+containerSize)]
-                
-                y,x = np.where(meanContain==meanContain.max())
-                windows[winIdx,:,:] = temp[int(y):int(y+querySize), int(x):int(x+querySize)]
-                
-                winIdx = winIdx + 1
-                y,x = np.where(meanContain==meanContain.min())
-                windows[winIdx,:,:] = temp[int(y):int(y+querySize), int(x):int(x+querySize)]
-                
-                winIdx = winIdx + 1
-                y,x = np.where(stdContain==stdContain.max())
-                windows[winIdx,:,:] = temp[int(y):int(y+querySize), int(x):int(x+querySize)]
-                
-                winIdx = winIdx + 1
-                y,x = np.where(stdContain==stdContain.min())
-                windows[winIdx,:,:] = temp[int(y):int(y+querySize), int(x):int(x+querySize)]
-                
-                winIdx = winIdx + 1
-            
-        windows = windows.copy()
-        return windows
-    
-    def get_training_set(microImg, bwMask_p, bwMask_n, N):
+        non_overlap = ApplePickerHelper.extract_windows(micro_img, n)
         
-        nonOverlap = ApplePickerHelper.extract_windows(microImg, N)
-        
-        windows = nonOverlap.copy()
-        indicate = ApplePickerHelper.extract_windows(bwMask_p, N)
+        windows = non_overlap.copy()
+        indicate = ApplePickerHelper.extract_windows(bw_mask_p, n)
         r, c = np.where(indicate==0)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
         p_mu = np.mean(windows, axis=0)
         p_std = np.std(windows, axis=0)
         
-        windows = nonOverlap.copy()
-        indicate = ApplePickerHelper.extract_windows(bwMask_n, N)
+        windows = non_overlap.copy()
+        indicate = ApplePickerHelper.extract_windows(bw_mask_n, n)
         r, c = np.where(indicate==1)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
@@ -147,40 +161,41 @@ class ApplePickerHelper:
         
         y = np.concatenate((np.ones(p_mu.shape[0]), np.zeros(n_mu.shape[0])), axis=0)
         
-        return x,y
+        return x, y
     
-    def moments(img, querySize):
+    @classmethod
+    def moments(cls, img, query_size):
 
-        filt = np.ones((querySize, querySize)) / (querySize * querySize)
-        filt = np.pad(filt, (0,img.shape[0]-1), 'constant', constant_values=(0, 0))
-        padImg = np.pad(img, (0,querySize-1), 'constant', constant_values=(0, 0))
-        padImg_square = np.square(padImg)
-        filtFreq = np.empty(padImg.shape, dtype = 'complex128')
-        imgFreq = np.empty(padImg.shape, dtype = 'complex128')
+        filt = np.ones((query_size, query_size)) / (query_size * query_size)
+        filt = np.pad(filt, (0, img.shape[0]-1), 'constant', constant_values=(0, 0))
+        pad_img = np.pad(img, (0, query_size - 1), 'constant', constant_values=(0, 0))
+        pad_img_square = np.square(pad_img)
+        filt_freq = np.empty(pad_img.shape, dtype='complex128')
+        img_freq = np.empty(pad_img.shape, dtype='complex128')
         
-        fft_class = pyfftw.FFTW(filt.astype('complex128'), filtFreq, axes=(0, 1), direction='FFTW_FORWARD')
+        fft_class = pyfftw.FFTW(filt.astype('complex128'), filt_freq, axes=(0, 1), direction='FFTW_FORWARD')
 
-        fft_class(filt, filtFreq)
-        fft_class(padImg, imgFreq)
+        fft_class(filt, filt_freq)
+        fft_class(pad_img, img_freq)
 
-        meanFreq = np.empty(filtFreq.shape, dtype=filtFreq.dtype)
-        np.multiply(imgFreq, filtFreq, out=meanFreq)
+        mean_freq = np.empty(filt_freq.shape, dtype=filt_freq.dtype)
+        np.multiply(img_freq, filt_freq, out=mean_freq)
         
-        meanAll = np.empty(meanFreq.shape, dtype = meanFreq.dtype)
-        fft_class2 = pyfftw.FFTW(meanFreq, meanAll, axes=(0, 1), direction='FFTW_BACKWARD')
-        fft_class2(meanFreq, meanAll)
-        meanAll = np.real(meanAll)
+        mean_all = np.empty(mean_freq.shape, dtype=mean_freq.dtype)
+        fft_class2 = pyfftw.FFTW(mean_freq, mean_all, axes=(0, 1), direction='FFTW_BACKWARD')
+        fft_class2(mean_freq, mean_all)
+        mean_all = np.real(mean_all)
 
-        imgVarFreq = np.empty(padImg_square.shape, dtype = 'complex128')
-        varFreq = np.empty(padImg_square.shape, dtype = 'complex128')
-        fft_class(padImg_square, imgVarFreq)
+        img_var_freq = np.empty(pad_img_square.shape, dtype='complex128')
+        var_freq = np.empty(pad_img_square.shape, dtype='complex128')
+        fft_class(pad_img_square, img_var_freq)
 
-        np.multiply(imgVarFreq, filtFreq, out=varFreq)
+        np.multiply(img_var_freq, filt_freq, out=var_freq)
 
-        varAll = np.empty(varFreq.shape, dtype=varFreq.dtype)
-        fft_class2(varFreq, varAll)
-        varAll = np.real(varAll) - np.power(meanAll, 2)
+        var_all = np.empty(var_freq.shape, dtype=var_freq.dtype)
+        fft_class2(var_freq, var_all)
+        var_all = np.real(var_all) - np.power(mean_all, 2)
         
-        stdAll = np.sqrt(varAll)
+        std_all = np.sqrt(var_all)
         
-        return meanAll, stdAll
+        return mean_all, std_all
