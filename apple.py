@@ -57,12 +57,12 @@ class Apple(object):
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
-        qBox = (4000 ** 2) / (self.query_image_size ** 2) * 4
+        q_box = (4000 ** 2) / (self.query_image_size ** 2) * 4
         if self.tau1 is None:
-            self.tau1 = int(qBox * 3 / 100)
+            self.tau1 = int(q_box * 3 / 100)
 
         if self.tau2 is None:
-            self.tau2 = int(qBox * 30 / 100)
+            self.tau2 = int(q_box * 30 / 100)
 
         self.verify_input_values()
         
@@ -137,44 +137,41 @@ class Apple(object):
         pool.map(partial_func, filenames)
         pool.terminate()
 
+    @staticmethod
     def process_micrograph(data, filenames):
         file_basename, file_extension = os.path.splitext(filenames)
 
         # parse filename and verify extension is ".mrc"
         if file_extension == '.mrc':  # todo use negative condition, use other func
 
-            picker = Picker()
-
-            directory = data[0]
-            pSize = data[1]
-            maxSize = data[2]
-            minSize = data[3]
-            qSize = data[4]
+            input_dir = data[0]
+            p_size = data[1]
+            max_size = data[2]
+            min_size = data[3]
+            q_size = data[4]
             tau1 = data[5]
             tau2 = data[6]
             moa = data[7]
-            cSize = data[8]
-            directory_out = data[9]
+            c_size = data[8]
+            output_dir = data[9]
 
             # add path to filename
-            filename = directory + '/' + filenames
+            filename = input_dir + '/' + filenames
 
-            # Initialize parameters for the APPLE picker
-            Picker.initialize_parameters(picker, pSize, maxSize, minSize, qSize, tau1, tau2, moa, cSize, filename,
-                                         directory_out)
+            picker = Picker(p_size, max_size, min_size, q_size, tau1, tau2, moa, c_size, filename, output_dir)
 
             # update user
             print('Processing {}..'.format(os.path.basename(filenames)))
 
             # return .mrc file as a float64 array
-            microImg = Picker.read_mrc(picker)  # return a micrograph as an numpy array
+            micro_img = picker.read_mrc()  # return a micrograph as an numpy array
 
             # compute score for query images
-            score = Picker.query_score(picker, microImg)  # compute score using normalized cross-correlations
+            score = picker.query_score(micro_img)  # compute score using normalized cross-correlations
 
             while True:
                 # train SVM classifier and classify all windows in micrograph
-                segmentation = Picker.run_svm(picker, microImg, score)
+                segmentation = picker.run_svm(micro_img, score)
 
                 # If all windows are classified identically, update tau_1 or tau_2
                 if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
@@ -187,10 +184,10 @@ class Apple(object):
                     break
 
             # discard suspected artifacts
-            segmentation = Picker.morphology_ops(picker, segmentation)
+            segmentation = picker.morphology_ops(segmentation)
 
             # create output star file
-            Picker.extract_particles(picker, segmentation)
+            picker.extract_particles(segmentation)
 
 
 if __name__ == "__main__":
