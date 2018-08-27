@@ -139,55 +139,54 @@ class Apple(object):
 
     @staticmethod
     def process_micrograph(data, filenames):
-        file_basename, file_extension = os.path.splitext(filenames)
 
-        # parse filename and verify extension is ".mrc"
-        if file_extension == '.mrc':  # todo use negative condition, use other func
+        if not filenames.endswith('.mrc'):
+            raise ConfigError("Input file doesn't seem to be an MRC format! ({})".format(filenames))
 
-            input_dir = data[0]
-            p_size = data[1]
-            max_size = data[2]
-            min_size = data[3]
-            q_size = data[4]
-            tau1 = data[5]
-            tau2 = data[6]
-            moa = data[7]
-            c_size = data[8]
-            output_dir = data[9]
+        input_dir = data[0]
+        p_size = data[1]
+        max_size = data[2]
+        min_size = data[3]
+        q_size = data[4]
+        tau1 = data[5]
+        tau2 = data[6]
+        moa = data[7]
+        c_size = data[8]
+        output_dir = data[9]
 
-            # add path to filename
-            filename = input_dir + '/' + filenames
+        # add path to filename
+        filename = os.path.join(input_dir, filenames)
 
-            picker = Picker(p_size, max_size, min_size, q_size, tau1, tau2, moa, c_size, filename, output_dir)
+        picker = Picker(p_size, max_size, min_size, q_size, tau1, tau2, moa, c_size, filename, output_dir)
 
-            # update user
-            print('Processing {}..'.format(os.path.basename(filenames)))
+        # update user
+        print('Processing {}..'.format(os.path.basename(filenames)))
 
-            # return .mrc file as a float64 array
-            micro_img = picker.read_mrc()  # return a micrograph as an numpy array
+        # return .mrc file as a float64 array
+        micro_img = picker.read_mrc()  # return a micrograph as an numpy array
 
-            # compute score for query images
-            score = picker.query_score(micro_img)  # compute score using normalized cross-correlations
+        # compute score for query images
+        score = picker.query_score(micro_img)  # compute score using normalized cross-correlations
 
-            while True:
-                # train SVM classifier and classify all windows in micrograph
-                segmentation = picker.run_svm(micro_img, score)
+        while True:
+            # train SVM classifier and classify all windows in micrograph
+            segmentation = picker.run_svm(micro_img, score)
 
-                # If all windows are classified identically, update tau_1 or tau_2
-                if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
-                    tau2 = tau2 + 500
+            # If all windows are classified identically, update tau_1 or tau_2
+            if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
+                tau2 = tau2 + 500
 
-                elif np.array_equal(segmentation, np.zeros((segmentation.shape[0], segmentation.shape[1]))):
-                    tau1 = tau1 + 500
+            elif np.array_equal(segmentation, np.zeros((segmentation.shape[0], segmentation.shape[1]))):
+                tau1 = tau1 + 500
 
-                else:
-                    break
+            else:
+                break
 
-            # discard suspected artifacts
-            segmentation = picker.morphology_ops(segmentation)
+        # discard suspected artifacts
+        segmentation = picker.morphology_ops(segmentation)
 
-            # create output star file
-            picker.extract_particles(segmentation)
+        # create output star file
+        picker.extract_particles(segmentation)
 
 
 if __name__ == "__main__":

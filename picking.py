@@ -196,11 +196,10 @@ class Picker(object):
         name_list = self.filenames.split("/")
         name = name_list[-1].split(".")
         name_str = name[0]
-        
-        f = open(self.output_directory + '/' + name_str +"_applepick.star", "w+")
-        np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateY #1\n_rlnCoordinateX #2"], fmt='%s')
-        np.savetxt(f, center, fmt='%d %d')
-        f.close()
+
+        with open(self.output_directory + '/' + name_str +"_applepick.star", "w+") as f:
+            np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateY #1\n_rlnCoordinateX #2"], fmt='%s')
+            np.savetxt(f, center, fmt='%d %d')
 
     def get_maps(self, score, micro_img, particle_windows, non_noise_windows):
         idx = np.argsort(-np.reshape(score, (np.prod(score.shape)), 'F'))
