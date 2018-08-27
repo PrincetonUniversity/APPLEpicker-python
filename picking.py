@@ -45,7 +45,7 @@ class Picker(object):
         
         micro_img = np.double(micro_img)
         return micro_img
-    
+
     def query_score(self, micro_img):
             
         query_box = ApplePickerHelper.extract_query(micro_img, int(self.query_size / 2))
