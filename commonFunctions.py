@@ -15,9 +15,7 @@ class commonFunctions:
     def gaussianFilter(sizeFilter, std):
 
         y,x = np.mgrid[-(sizeFilter-1)//2:(sizeFilter-1)//2+1,-(sizeFilter-1)//2:(sizeFilter-1)//2+1]
-#        response = np.exp((-np.square(x) - np.square(y)) / (2*(std**2)))
-        
-        
+
         response = np.exp(-np.square(x) - np.square(y) / (2*(std**2)))/(np.sqrt(2*np.pi)*std)
         response[response < np.finfo('float').eps] = 0
         
@@ -25,7 +23,7 @@ class commonFunctions:
             
         return response
     
-    def im2col(img, blockSize):
+    def extractWindows(img, blockSize):
         
         # get size of image
         Sx = img.shape[1]
@@ -122,10 +120,10 @@ class commonFunctions:
     
     def getTrainingSet(microImg, bwMask_p, bwMask_n, N):
         
-        nonOverlap = commonFunctions.im2col(microImg, N)
+        nonOverlap = commonFunctions.extractWindows(microImg, N)
         
         windows = nonOverlap.copy()
-        indicate = commonFunctions.im2col(bwMask_p, N)
+        indicate = commonFunctions.extractWindows(bwMask_p, N)
         r, c = np.where(indicate==0)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
@@ -133,7 +131,7 @@ class commonFunctions:
         p_std = np.std(windows, axis=0)
         
         windows = nonOverlap.copy()
-        indicate = commonFunctions.im2col(bwMask_n, N)
+        indicate = commonFunctions.extractWindows(bwMask_n, N)
         r, c = np.where(indicate==1)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
@@ -165,8 +163,7 @@ class commonFunctions:
 
         fft_class(filt, filtFreq)
         fft_class(padImg, imgFreq)
-#        imgFreq = pyfftw.interfaces.scipy_fftpack.fft2(padImg, axes=(0, 1))
-#        filtFreq = pyfftw.interfaces.scipy_fftpack.fft2(filt, axes=(0, 1))
+
         meanFreq = np.empty(filtFreq.shape, dtype=filtFreq.dtype)
         np.multiply(imgFreq, filtFreq, out=meanFreq)
         
@@ -174,22 +171,17 @@ class commonFunctions:
         fft_class2 = pyfftw.FFTW(meanFreq, meanAll, axes=(0, 1), direction='FFTW_BACKWARD')
         fft_class2(meanFreq, meanAll)
         meanAll = np.real(meanAll)
-#        meanAll = np.real(pyfftw.interfaces.scipy_fftpack.ifft2(meanFreq, axes=(0, 1)))
-        
-#        imgVarFreq = pyfftw.interfaces.scipy_fftpack.fft2(np.power(padImg, 2), axes=(0, 1))
+
         imgVarFreq = np.empty(padImg_square.shape, dtype = 'complex128')
         varFreq = np.empty(padImg_square.shape, dtype = 'complex128')
         fft_class(padImg_square, imgVarFreq)
-#        varFreq = imgVarFreq*filtFreq
+
         np.multiply(imgVarFreq, filtFreq, out=varFreq)
-#        varAll = np.real(pyfftw.interfaces.scipy_fftpack.ifft2(varFreq, axes=(0, 1))) - np.power(meanAll, 2)
-        varAll = np.empty(varFreq.shape, dtype = varFreq.dtype)
+
+        varAll = np.empty(varFreq.shape, dtype=varFreq.dtype)
         fft_class2(varFreq, varAll)
         varAll = np.real(varAll) - np.power(meanAll, 2)
         
         stdAll = np.sqrt(varAll)
         
         return meanAll, stdAll
-        
-        
-        

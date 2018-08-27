@@ -45,26 +45,18 @@ class Picker(object):
         self.querySize = self.querySize - self.querySize%2
 
     def readMRC(self):
-        mrc = mrcfile.open(self.filenames, mode='r+', permissive=True) # ADD permissive=True
-        microImg = mrc.data # difference from ReadMRC in matlab: transpose. Verified 6.21.2018
+        mrc = mrcfile.open(self.filenames, mode='r+', permissive=True) 
+        microImg = mrc.data 
         mrc.close()
         microImg = microImg.astype('float')
 
         microImg = microImg[99:-100, 99:-100]
-        microImg = misc.imresize(microImg, 0.5, mode='F', interp='cubic')   # For file /Volumes/LaCie/data/10017_ctf/Falcon_2012_06_12-14_33_35_0.mrc:
-                                                                            # minimum micrograph element after resize is 5.4719e+04 (in absolute value) 
-                                                                            # maximum deviation from Matlab's resize 351.9922. Maximum deviation after 
-                                                                            # deleting the 100 outermost pixels (50 in the binned image) the max deviation 
-                                                                            # is 0.0078. Verified 6.21.2018
-#        microImg = microImg[::2, ::2]
+        microImg = misc.imresize(microImg, 0.5, mode='F', interp='cubic')   
+
         gaussFilt = commonFunctions.gaussianFilter(15, 0.5)
-        microImg = signal.correlate(microImg, gaussFilt, 'same')       # Max difference between this function and Matlab's imfilter (on the same arrays and 
-                                                                       # same filter) is 0.0312. Verified 6.21.2018
-                                                                       # Notice: microImg = block_reduce(microImg, block_size=(2,2), func=np.mean) may also work
+        microImg = signal.correlate(microImg, gaussFilt, 'same')       
         
         microImg = np.double(microImg)
-        #microImg = cp.asarray(microImg)
-        #microImg = cp.array(microImg)
         return microImg
     
     def queryScore(self, microImg): 
@@ -75,10 +67,10 @@ class Picker(object):
         out_shape = (queryBox.shape[0], queryBox.shape[1], queryBox.shape[2], queryBox.shape[3] // 2 + 1)
         queryBoxA = np.empty(out_shape, dtype='complex128')
         fft_class_f = pyfftw.FFTW(queryBox, queryBoxA, axes=(2, 3), direction='FFTW_FORWARD')
-        fft_class_f(queryBox, queryBoxA)                                        # verified 7.31.2018
-        queryBox = np.conj(queryBoxA) # Difference of 10^-8 from result in Matlab. Verified 7.11.18
+        fft_class_f(queryBox, queryBoxA)                                       
+        queryBox = np.conj(queryBoxA) 
 
-        referenceBoxA = commonFunctions.extractReferences(microImg, self.querySize, self.containerSize) # Difference of 10^-9 from result in Matlab. Verified 7.11.18
+        referenceBoxA = commonFunctions.extractReferences(microImg, self.querySize, self.containerSize)
         out_shape2 = (referenceBoxA.shape[0], referenceBoxA.shape[1], referenceBoxA.shape[-1] // 2 + 1)
         
         referenceBox = np.empty(out_shape2, dtype='complex128')
@@ -96,27 +88,16 @@ class Picker(object):
             fft_class(window_t, cc)   
             convMap[index] = cc.real.max((2, 3)) - cc.real.mean((2,3))
         
-        convMap = np.transpose(convMap, (1,2,0)) # Max difference of 0.0122. Verified 7.31.2018
+        convMap = np.transpose(convMap, (1,2,0))
 
         minVal = np.amin(convMap)
         maxVal = np.amax(convMap)
         thresh = minVal + (maxVal - minVal)/20;
         
         h = convMap>=thresh
-        score = np.sum(h, axis=2) # Equal to Matlab. Verified 7.23.18
+        score = np.sum(h, axis=2)
 
         return score
-    
-#    def process_corr(queryBox, referenceBox):
-#        window_t = np.empty(queryBox.shape, dtype=queryBox.dtype)
-#        cc = np.empty((queryBox.shape[0], queryBox.shape[1], queryBox.shape[2], 2*queryBox.shape[3]-2), dtype='float64')
-#        fft_class = pyfftw.FFTW(window_t, cc, axes=(2, 3), direction='FFTW_BACKWARD')
-#        
-#        np.multiply(referenceBox, queryBox, out=window_t)
-#        fft_class(window_t, cc) 
-#        convMap = cc.real.max((2, 3)) - cc.real.mean((2,3))
-#        print('done')
-#        return convMap
 
     def runSVM(self, microImg, score):
         particleWindows = np.floor(self.tau1)
@@ -124,9 +105,6 @@ class Picker(object):
         bwMask_p, bwMask_n = Picker.getMaps(self, score, microImg, particleWindows, nonNoiseWindows)
  
         x, y = commonFunctions.getTrainingSet(microImg, bwMask_p, bwMask_n, self.querySize)
-        
-#        svm_obj = svmpy()
-#        svm_obj.train(x, y)
 
         scaler = preprocessing.StandardScaler()
         scaler.fit(x)
@@ -143,10 +121,10 @@ class Picker(object):
         stdAll = np.reshape(stdAll, (np.prod(stdAll.shape), 1), 'F')
         clsInput = np.concatenate((meanAll, stdAll), axis=1)
         clsInput = scaler.transform(clsInput)
-        segmentation = classify.predict(clsInput)                           # compute classification for all possible windows in micrograph
 
-#        segmentation = svm_obj.classify_micrograph(clsInput)
-        
+        # compute classification for all possible windows in micrograph
+        segmentation = classify.predict(clsInput)
+
         segmentation = np.reshape(segmentation, (int(np.sqrt(segmentation.shape[0])), int(np.sqrt(segmentation.shape[0]))))
         segmentation = segmentation.copy()
         return segmentation
@@ -158,11 +136,11 @@ class Picker(object):
         segmentation = ndimage.morphology.binary_fill_holes(segmentation)
         y,x = np.ogrid[-self.minSize:self.minSize+1, -self.minSize:self.minSize+1]
         element = x*x+y*y <= self.minSize*self.minSize
-        segmentation_e = ndimage.morphology.binary_erosion(segmentation, element) # Equal to erosion in Matlab. Verified 7.25.18
+        segmentation_e = ndimage.morphology.binary_erosion(segmentation, element) 
         
         y,x = np.ogrid[-self.maxSize:self.maxSize+1, -self.maxSize:self.maxSize+1]
         element = x*x+y*y <= self.maxSize*self.maxSize
-        segmentation_o = ndimage.morphology.binary_erosion(segmentation, element) # This erosion also works from edges of image. The one in Matalb does not
+        segmentation_o = ndimage.morphology.binary_erosion(segmentation, element)
         segmentation_o = np.reshape(segmentation_o, (segmentation_o.shape[0], segmentation_o.shape[1], 1)) 
         
         sizeConst, num_features = ndimage.label(segmentation_e, np.ones((3,3)))

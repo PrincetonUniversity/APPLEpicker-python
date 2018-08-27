@@ -66,7 +66,7 @@ class Apple(object):
 
         self.verify_input_values()
         
-        print('parameter report'.center(os.get_terminal_size().columns) + '\n')
+        print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
         print('%(parameter)-40s %(value)-10s' %  {"parameter": "particle size", "value": self.particle_size})
         print('%(parameter)-40s %(value)-10s' %  {"parameter": "query image size", "value": self.query_image_size})
         print('%(parameter)-40s %(value)-10s' %  {"parameter": "maximum particle size", "value": self.max_particle_size})
@@ -77,7 +77,7 @@ class Apple(object):
         print('%(parameter)-40s %(value)-10s' %  {"parameter": "container size", "value": self.container_size})
         print('%(parameter)-40s %(value)-10s' %  {"parameter": "processor pool size", "value": self.proc})
         print('%(parameter)-40s %(value)-10s\n' %  {"parameter": "output directory", "value": self.output_dir})
-        print('progress report'.center(os.get_terminal_size().columns) + '\n')
+        print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
 
     def verify_input_values(self):
         if not 1 <= self.max_particle_size <= 3000:
