@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun 21 11:25:48 2018
@@ -8,11 +7,11 @@ Created on Thu Jun 21 11:25:48 2018
 
 import numpy as np
 import pyfftw
-#import cupy as cp
 
-class commonFunctions:
+
+class ApplePickerHelper:
     
-    def gaussianFilter(sizeFilter, std):
+    def gaussian_filter(sizeFilter, std):
 
         y,x = np.mgrid[-(sizeFilter-1)//2:(sizeFilter-1)//2+1,-(sizeFilter-1)//2:(sizeFilter-1)//2+1]
 
@@ -23,7 +22,7 @@ class commonFunctions:
             
         return response
     
-    def extractWindows(img, blockSize):
+    def extract_windows(img, blockSize):
         
         # get size of image
         Sx = img.shape[1]
@@ -46,7 +45,7 @@ class commonFunctions:
             
         return img
         
-    def extractQuery(img, blockSize):
+    def extract_query(img, blockSize):
         
         Sx = img.shape[1]
         Sy = img.shape[0]
@@ -75,7 +74,7 @@ class commonFunctions:
         blocks = blocks.copy()
         return blocks
     
-    def extractReferences(img, querySize, containerSize):
+    def extract_references(img, querySize, containerSize):
         
         numContainersRow = int(np.floor(img.shape[0]/containerSize))
         numContainersCol = int(np.floor(img.shape[1]/containerSize))
@@ -83,7 +82,7 @@ class commonFunctions:
         windows = np.zeros((numContainersRow*numContainersCol*4, querySize, querySize))
         winIdx = 0
         
-        meanAll, stdAll = commonFunctions.moments(img, querySize)
+        meanAll, stdAll = ApplePickerHelper.moments(img, querySize)
         
         for yContain in range(1, numContainersRow+1):
             for xContain in range(1, numContainersCol+1):
@@ -118,12 +117,12 @@ class commonFunctions:
         windows = windows.copy()
         return windows
     
-    def getTrainingSet(microImg, bwMask_p, bwMask_n, N):
+    def get_training_set(microImg, bwMask_p, bwMask_n, N):
         
-        nonOverlap = commonFunctions.extractWindows(microImg, N)
+        nonOverlap = ApplePickerHelper.extract_windows(microImg, N)
         
         windows = nonOverlap.copy()
-        indicate = commonFunctions.extractWindows(bwMask_p, N)
+        indicate = ApplePickerHelper.extract_windows(bwMask_p, N)
         r, c = np.where(indicate==0)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
@@ -131,7 +130,7 @@ class commonFunctions:
         p_std = np.std(windows, axis=0)
         
         windows = nonOverlap.copy()
-        indicate = commonFunctions.extractWindows(bwMask_n, N)
+        indicate = ApplePickerHelper.extract_windows(bwMask_n, N)
         r, c = np.where(indicate==1)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)

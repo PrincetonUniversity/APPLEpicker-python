@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jun 20 12:21:28 2018
@@ -8,13 +7,11 @@ Created on Wed Jun 20 12:21:28 2018
 
 import mrcfile
 import numpy as np
-from scipy import ndimage
-from scipy import misc
-from scipy import signal
-from commonFunctions import commonFunctions
-# from skimage.transform import resize  # TODO use this one instead of Scipy.misc.imresize
-from sklearn import svm, preprocessing
 import pyfftw
+
+from scipy import ndimage, misc, signal
+from helper import ApplePickerHelper
+from sklearn import svm, preprocessing
 
 
 class Picker(object):
@@ -29,7 +26,7 @@ class Picker(object):
     output_directory = ''
     filenames = ''
 
-    def initializeParameters(self, particleSize, maxSize, minSize, querySize, tau1, tau2, MOA, containerSize, filenames, output_directory):
+    def initialize_parameters(self, particleSize, maxSize, minSize, querySize, tau1, tau2, MOA, containerSize, filenames, output_directory):
         self.particleSize = int(particleSize/2)
         self.maxSize = int(maxSize/4)
         self.minSize = int(minSize/4)
@@ -44,7 +41,7 @@ class Picker(object):
         
         self.querySize = self.querySize - self.querySize%2
 
-    def readMRC(self):
+    def read_mrc(self):
         mrc = mrcfile.open(self.filenames, mode='r+', permissive=True) 
         microImg = mrc.data 
         mrc.close()
@@ -53,15 +50,15 @@ class Picker(object):
         microImg = microImg[99:-100, 99:-100]
         microImg = misc.imresize(microImg, 0.5, mode='F', interp='cubic')   
 
-        gaussFilt = commonFunctions.gaussianFilter(15, 0.5)
+        gaussFilt = ApplePickerHelper.gaussian_filter(15, 0.5)
         microImg = signal.correlate(microImg, gaussFilt, 'same')       
         
         microImg = np.double(microImg)
         return microImg
     
-    def queryScore(self, microImg): 
+    def query_score(self, microImg):
             
-        queryBox = commonFunctions.extractQuery(microImg, int(self.querySize/2))
+        queryBox = ApplePickerHelper.extract_query(microImg, int(self.querySize / 2))
         
         
         out_shape = (queryBox.shape[0], queryBox.shape[1], queryBox.shape[2], queryBox.shape[3] // 2 + 1)
@@ -70,7 +67,7 @@ class Picker(object):
         fft_class_f(queryBox, queryBoxA)                                       
         queryBox = np.conj(queryBoxA) 
 
-        referenceBoxA = commonFunctions.extractReferences(microImg, self.querySize, self.containerSize)
+        referenceBoxA = ApplePickerHelper.extract_references(microImg, self.querySize, self.containerSize)
         out_shape2 = (referenceBoxA.shape[0], referenceBoxA.shape[1], referenceBoxA.shape[-1] // 2 + 1)
         
         referenceBox = np.empty(out_shape2, dtype='complex128')
@@ -99,12 +96,12 @@ class Picker(object):
 
         return score
 
-    def runSVM(self, microImg, score):
+    def run_svm(self, microImg, score):
         particleWindows = np.floor(self.tau1)
         nonNoiseWindows = np.ceil(self.tau2)
-        bwMask_p, bwMask_n = Picker.getMaps(self, score, microImg, particleWindows, nonNoiseWindows)
+        bwMask_p, bwMask_n = Picker.get_maps(self, score, microImg, particleWindows, nonNoiseWindows)
  
-        x, y = commonFunctions.getTrainingSet(microImg, bwMask_p, bwMask_n, self.querySize)
+        x, y = ApplePickerHelper.get_training_set(microImg, bwMask_p, bwMask_n, self.querySize)
 
         scaler = preprocessing.StandardScaler()
         scaler.fit(x)
@@ -112,7 +109,7 @@ class Picker(object):
         classify = svm.SVC(C=1, kernel='rbf', gamma=0.5, class_weight='balanced')
         classify.fit(x, y)                                                  # train SVM classifier
         
-        meanAll, stdAll = commonFunctions.moments(microImg, self.querySize)
+        meanAll, stdAll = ApplePickerHelper.moments(microImg, self.querySize)
                                                                     
         meanAll = meanAll[self.querySize-1:-(self.querySize-1), self.querySize-1:-(self.querySize-1)]
         stdAll = stdAll[self.querySize-1:-(self.querySize-1), self.querySize-1:-(self.querySize-1)]
@@ -129,7 +126,7 @@ class Picker(object):
         segmentation = segmentation.copy()
         return segmentation
     
-    def morphologyOps(self, segmentation):
+    def morphology_ops(self, segmentation):
         if (ndimage.morphology.binary_fill_holes(segmentation)==np.ones(segmentation.shape)).all():
             segmentation[0:100, 0:100] = np.zeros((100,100))
             
@@ -161,7 +158,7 @@ class Picker(object):
         
         return segmentation_e
     
-    def extractParticles(self, segmentation):
+    def extract_particles(self, segmentation):
         segmentation = segmentation[self.querySize//2-1:-self.querySize//2, self.querySize//2-1:-self.querySize//2]
         labeledSegments, num_features = ndimage.label(segmentation, np.ones((3,3)))
         values, repeats = np.unique(labeledSegments, return_counts=True)
@@ -214,7 +211,7 @@ class Picker(object):
         np.savetxt(f, center, fmt='%d %d')
         f.close()
 
-    def getMaps(self, score, microImg, particleWindows, nonNoiseWindows):        
+    def get_maps(self, score, microImg, particleWindows, nonNoiseWindows):
         idx = np.argsort(-np.reshape(score, (np.prod(score.shape)), 'F'))
         
         y = idx % score.shape[0]
@@ -240,5 +237,3 @@ class Picker(object):
             bwMask_n[beginRowIdx[j]:endRowIdx[j], beginColIdx[j]:endColIdx[j]] = np.ones(endRowIdx[j]-beginRowIdx[j], endColIdx[j]-beginColIdx[j])
             
         return bwMask_p, bwMask_n
-
-

@@ -160,21 +160,21 @@ class Apple(object):
             filename = directory + '/' + filenames
 
             # Initialize parameters for the APPLE picker
-            Picker.initializeParameters(picker, pSize, maxSize, minSize, qSize, tau1, tau2, moa, cSize, filename,
-                                        directory_out)
+            Picker.initialize_parameters(picker, pSize, maxSize, minSize, qSize, tau1, tau2, moa, cSize, filename,
+                                         directory_out)
 
             # update user
             print('Processing {}..'.format(os.path.basename(filenames)))
 
             # return .mrc file as a float64 array
-            microImg = Picker.readMRC(picker)  # return a micrograph as an numpy array
+            microImg = Picker.read_mrc(picker)  # return a micrograph as an numpy array
 
             # compute score for query images
-            score = Picker.queryScore(picker, microImg)  # compute score using normalized cross-correlations
+            score = Picker.query_score(picker, microImg)  # compute score using normalized cross-correlations
 
             while True:
                 # train SVM classifier and classify all windows in micrograph
-                segmentation = Picker.runSVM(picker, microImg, score)
+                segmentation = Picker.run_svm(picker, microImg, score)
 
                 # If all windows are classified identically, update tau_1 or tau_2
                 if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
@@ -187,10 +187,10 @@ class Apple(object):
                     break
 
             # discard suspected artifacts
-            segmentation = Picker.morphologyOps(picker, segmentation)
+            segmentation = Picker.morphology_ops(picker, segmentation)
 
             # create output star file
-            Picker.extractParticles(picker, segmentation)
+            Picker.extract_particles(picker, segmentation)
 
 
 if __name__ == "__main__":
