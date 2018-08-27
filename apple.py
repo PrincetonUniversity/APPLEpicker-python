@@ -130,7 +130,7 @@ class Apple(object):
         data.append(self.tau2)
         data.append(self.minimum_overlap_amount)
         data.append(self.container_size)
-        data.append(self.output_dir if self.output_dir else mrc_dir)
+        data.append(self.output_dir)
 
         pool = Pool(processes=self.proc)
         partial_func = partial(Apple.process_micrograph, data)
@@ -171,19 +171,20 @@ class Apple(object):
 
             # compute score for query images
             score = Picker.queryScore(picker, microImg)  # compute score using normalized cross-correlations
-            flag = True
 
-            while (flag):
+            while True:
                 # train SVM classifier and classify all windows in micrograph
                 segmentation = Picker.runSVM(picker, microImg, score)
 
                 # If all windows are classified identically, update tau_1 or tau_2
                 if np.array_equal(segmentation, np.ones((segmentation.shape[0], segmentation.shape[1]))):
                     tau2 = tau2 + 500
+
                 elif np.array_equal(segmentation, np.zeros((segmentation.shape[0], segmentation.shape[1]))):
                     tau1 = tau1 + 500
+
                 else:
-                    flag = False
+                    break
 
             # discard suspected artifacts
             segmentation = Picker.morphologyOps(picker, segmentation)
