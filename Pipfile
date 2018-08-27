@@ -12,6 +12,7 @@ pyfftw = "*"
 sklearn = "*"
 svmpy = "*"
 scikit-image = "*"
+pylint = "*"
 
 [dev-packages]
 
