@@ -9,7 +9,7 @@ import numpy as np
 import pyfftw
 
 
-class ApplePickerHelper:
+class PickerHelper:
     
     @classmethod
     def gaussian_filter(cls, size_filter, std):
@@ -91,7 +91,7 @@ class ApplePickerHelper:
         windows = np.zeros((num_containers_row * num_containers_col * 4, query_size, query_size))
         win_idx = 0
         
-        mean_all, std_all = ApplePickerHelper.moments(img, query_size)
+        mean_all, std_all = PickerHelper.moments(img, query_size)
         
         for y_contain in range(1, num_containers_row+1):
             for x_contain in range(1, num_containers_col+1):
@@ -133,10 +133,10 @@ class ApplePickerHelper:
     @classmethod
     def get_training_set(cls, micro_img, bw_mask_p, bw_mask_n, n):
         
-        non_overlap = ApplePickerHelper.extract_windows(micro_img, n)
+        non_overlap = PickerHelper.extract_windows(micro_img, n)
         
         windows = non_overlap.copy()
-        indicate = ApplePickerHelper.extract_windows(bw_mask_p, n)
+        indicate = PickerHelper.extract_windows(bw_mask_p, n)
         r, c = np.where(indicate==0)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
@@ -144,7 +144,7 @@ class ApplePickerHelper:
         p_std = np.std(windows, axis=0)
         
         windows = non_overlap.copy()
-        indicate = ApplePickerHelper.extract_windows(bw_mask_n, n)
+        indicate = PickerHelper.extract_windows(bw_mask_n, n)
         r, c = np.where(indicate==1)
         c = np.setdiff1d(np.arange(0, indicate.shape[1]), c)
         windows = windows.take(c, 1)
