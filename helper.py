@@ -71,7 +71,7 @@ class PickerHelper:
         blocks = np.concatenate(
             (blocks,
              np.concatenate((blocks[:, :, 1:],
-                             np.reshape(blocks[:, :, 0], (blocks.shape[0], blocks.shape[1], 1))),
+                             np.reshape(blocks[:, :, 0], (blocks.shape[0], blocks.shape[1], 1), 'F')),
                             axis=2)), axis=0)
 
         temp = np.concatenate((blocks[:, :, int(np.floor(2 * img.shape[1] / 2 / block_size)):],
@@ -168,10 +168,10 @@ class PickerHelper:
         n_mu = np.mean(windows, axis=0)
         n_std = np.std(windows, axis=0)
 
-        p_mu = np.reshape(p_mu, (p_mu.shape[0], 1))
-        p_std = np.reshape(p_std, (p_std.shape[0], 1))
-        n_mu = np.reshape(n_mu, (n_mu.shape[0], 1))
-        n_std = np.reshape(n_std, (n_std.shape[0], 1))
+        p_mu = np.reshape(p_mu, (p_mu.shape[0], 1), 'F')
+        p_std = np.reshape(p_std, (p_std.shape[0], 1), 'F')
+        n_mu = np.reshape(n_mu, (n_mu.shape[0], 1), 'F')
+        n_std = np.reshape(n_std, (n_std.shape[0], 1), 'F')
 
         x = np.concatenate((p_mu, p_std), axis=1)
         x = np.concatenate((x, np.concatenate((n_mu, n_std), axis=1)), axis=0)
