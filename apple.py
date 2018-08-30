@@ -68,6 +68,12 @@ class Apple:
         self.print_values()
 
     def print_values(self):
+
+        try:
+            std_out_width = os.get_terminal_size().columns
+        except OSError:
+            std_out_width = 100
+
         print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
 
         params = ['particle_size',
@@ -84,7 +90,7 @@ class Apple:
         for param in params:
             print('%(param)-40s %(value)-10s' % {"param": param, "value": getattr(self, param)})
 
-        print('\n' + ' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
+        print('\n' + ' Parameter Report '.center(std_out_width, '=') + '\n')
 
     def verify_input_values(self):
         if not 1 <= self.max_particle_size <= 3000:
