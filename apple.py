@@ -42,10 +42,10 @@ class Apple:
         self.query_image_size = query_window_size
 
         if self.max_particle_size is None:
-            self.max_particle_size = self.particle_size * 4
+            self.max_particle_size = self.particle_size * 2
 
         if self.min_particle_size is None:
-            self.min_particle_size = int(self.particle_size / 6)
+            self.min_particle_size = int(self.particle_size / 4)
 
         if self.minimum_overlap_amount is None:
             self.minimum_overlap_amount = int(self.particle_size / 10)

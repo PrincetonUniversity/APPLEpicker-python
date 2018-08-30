@@ -132,7 +132,7 @@ class Picker:
         segmentation = classify.predict(cls_input)
 
         segmentation = np.reshape(segmentation, (
-            int(np.sqrt(segmentation.shape[0])), int(np.sqrt(segmentation.shape[0]))))
+            int(np.sqrt(segmentation.shape[0])), int(np.sqrt(segmentation.shape[0]))), 'F')
 
         return segmentation.copy()
 
@@ -149,14 +149,14 @@ class Picker:
         element = x*x+y*y <= self.max_size * self.max_size
         segmentation_o = binary_erosion(segmentation, element)
         segmentation_o = np.reshape(segmentation_o,
-                                    (segmentation_o.shape[0], segmentation_o.shape[1], 1))
+                                    (segmentation_o.shape[0], segmentation_o.shape[1], 1), 'F')
 
         size_const, _ = ndimage.label(segmentation_e, np.ones((3, 3)))
-        size_const = np.reshape(size_const, (size_const.shape[0], size_const.shape[1], 1))
+        size_const = np.reshape(size_const, (size_const.shape[0], size_const.shape[1], 1), 'F')
         labels = np.unique(size_const*segmentation_o)
         idx = np.where(labels != 0)
         labels = np.take(labels, idx)
-        labels = np.reshape(labels, (1, 1, np.prod(labels.shape)))
+        labels = np.reshape(labels, (1, 1, np.prod(labels.shape)), 'F')
 
         matrix1 = np.repeat(size_const, labels.shape[2], 2)
         matrix2 = np.repeat(labels, matrix1.shape[0], 0)
@@ -177,10 +177,10 @@ class Picker:
 
         values_to_remove = np.where(repeats > self.query_size ** 2)
         values = np.take(values, values_to_remove)
-        values = np.reshape(values, (1, 1, np.prod(values.shape)))
+        values = np.reshape(values, (1, 1, np.prod(values.shape)), 'F')
 
         labeled_segments = np.reshape(labeled_segments, (labeled_segments.shape[0],
-                                                         labeled_segments.shape[1], 1))
+                                                         labeled_segments.shape[1], 1), 'F')
         matrix1 = np.repeat(labeled_segments, values.shape[2], 2)
         matrix2 = np.repeat(values, matrix1.shape[0], 0)
         matrix2 = np.repeat(matrix2, matrix1.shape[1], 1)
@@ -205,7 +205,7 @@ class Picker:
         y = np.where(repeats == np.count_nonzero(element))
         y = np.array(y)
         y = y.astype(int)
-        y = np.reshape(y, (np.prod(y.shape)))
+        y = np.reshape(y, (np.prod(y.shape)), 'F')
         y -= 1
         center = center[y, :]
 
