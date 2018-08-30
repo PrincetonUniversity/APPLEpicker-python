@@ -10,10 +10,10 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 echo "upgrading pip.."
-pip install --upgrade pip
+pip3 install --upgrade pip
 
 echo "installing virtual environment.."
-pip3 install -U virtualenv
+pip3 install --upgrade virtualenv
 
 echo "creating virtualenv.."
 virtualenv --python=python3.5 ve-ap
@@ -22,7 +22,7 @@ echo "activating virtualenv.."
 source ve-ap/bin/activate
 
 echo "installing pipenv.."
-pip install pipenv
+pip3 install pipenv
 
 echo "installing python packages (dependencies) using pipenv.."
 pipenv install
