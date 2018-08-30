@@ -74,7 +74,7 @@ class Apple:
         except OSError:
             std_out_width = 100
 
-        print(' Parameter Report '.center(os.get_terminal_size().columns, '=') + '\n')
+        print(' Parameter Report '.center(std_out_width, '=') + '\n')
 
         params = ['particle_size',
                   'query_image_size',
