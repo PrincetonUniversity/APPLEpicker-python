@@ -10,6 +10,8 @@ import mrcfile
 import numpy as np
 import pyfftw
 
+import scipy_signaling_patch  # don't remove. check out the file for details
+
 from scipy import ndimage, misc, signal
 from scipy.ndimage import binary_fill_holes, binary_erosion, binary_dilation, center_of_mass
 from sklearn import svm, preprocessing
@@ -44,8 +46,8 @@ class Picker:
         micro_img = micro_img[99:-100, 99:-100]
         micro_img = misc.imresize(micro_img, 0.5, mode='F', interp='cubic')
 
-        gauss_filt = PickerHelper.gaussian_filter(15, 0.5)
-        micro_img = signal.correlate(micro_img, gauss_filt, 'same')
+        gauss_filter = PickerHelper.gaussian_filter(15, 0.5)
+        micro_img = signal.correlate(micro_img, gauss_filter, 'same')
 
         micro_img = np.double(micro_img)
         return micro_img
