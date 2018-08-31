@@ -13,6 +13,12 @@ class PickerHelper:
 
     @classmethod
     def gaussian_filter(cls, size_filter, std):
+        """Computes low-pass filter.
+        
+        Args:
+            size_filter: Size of filter (size_filter x size_filter).
+            std: sigma value in filter.
+        """
 
         y, x = np.mgrid[-(size_filter - 1) // 2: (size_filter - 1) // 2 + 1,
                         -(size_filter - 1) // 2: (size_filter - 1) // 2 + 1]
@@ -24,6 +30,16 @@ class PickerHelper:
 
     @classmethod
     def extract_windows(cls, img, block_size):
+        """Extracts blocks of size (block_size x block_size) from the micrograph. Blocks are 
+        extracted with steps of size (block_size)
+        
+        Args:
+            img: Micrograph image.
+            block_size: required block size.
+            
+        Returns:
+            3D Matrix of blocks. For example, img[0] is the first block.
+        """
 
         # get size of image
         size_x = img.shape[1]
@@ -49,6 +65,16 @@ class PickerHelper:
 
     @classmethod
     def extract_query(cls, img, block_size):
+        """Extract all query images from the micrograph. windows are 
+        extracted with steps of size (block_size/2)
+        
+        Args:
+            img: Micrograph image.
+            block_size: Query images must be of size (block_size x block_size).
+            
+        Returns:
+            4D Matrix of query images. 
+        """
 
         size_x = img.shape[1]
         size_y = img.shape[0]
@@ -93,6 +119,17 @@ class PickerHelper:
 
     @classmethod
     def extract_references(cls, img, query_size, container_size):
+        """Chooses and extracts reference images from the micrograph. 
+        
+        Args:
+            img: Micrograph image.
+            query_size: Reference images must be of the same size of query images, i.e. (query_size x query_size).
+            container_size: Containers are large regions used to select reference images. The size of each 
+            region is (container_size x container_size)
+            
+        Returns:
+            3D Matrix of reference images.  windows[0] is the first reference window.
+        """
 
         num_containers_row = int(np.floor(img.shape[0] / container_size))
         num_containers_col = int(np.floor(img.shape[1] / container_size))
@@ -149,6 +186,17 @@ class PickerHelper:
 
     @classmethod
     def get_training_set(cls, micro_img, bw_mask_p, bw_mask_n, n):
+        """Gets training set for the SVM classifier.
+        
+        Args:
+            micro_img: Micrograph image.
+            bw_mask_p: Binary image indicating regions from which to extract examples of particles.
+            bw_mask_n: Binary image indicating regions from which to extract examples of noise.
+            n: Size of training windows.
+            
+        Returns:
+            A matrix of features and a vertor of labels for the SVM training.
+        """
 
         non_overlap = cls.extract_windows(micro_img, n)
 
@@ -182,6 +230,18 @@ class PickerHelper:
 
     @classmethod
     def moments(cls, img, query_size):
+        """Calculates the mean and standard deviation for each window of size (query_size x query_size) 
+        in the micrograph.
+        
+        Args:
+            img: Micrograph image.
+            query_size: Size of windows for which to compute mean and std.
+            
+        Returns:
+            A matrix of mean intensity and a matrix of variance, each containing a single 
+            entry for each possible (query_size x query_size) window in the micrograph.
+        """
+        
         filt = np.ones((query_size, query_size)) / (query_size * query_size)
         filt = np.pad(filt, (0, img.shape[0]-1), 'constant', constant_values=(0, 0))
         pad_img = np.pad(img, (0, query_size - 1), 'constant', constant_values=(0, 0))
