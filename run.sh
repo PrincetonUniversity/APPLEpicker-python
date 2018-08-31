@@ -5,29 +5,19 @@
 # virtual environment, pipenv dependencies etc.
 # You can view a live example at https://codeocean.com/capsule/3477951b-31c5-4e45-8894-99e256fc5836/code
 
-set -e
-export LC_ALL=C.UTF-8
-export LANG=C.UTF-8
-
-echo "upgrading pip.."
-pip3 install --upgrade pip
-
-echo "installing virtual environment.."
-pip3 install --upgrade virtualenv
-
-echo "creating virtualenv.."
-virtualenv --python=python3.5 ve-ap
-
-echo "activating virtualenv.."
-source ve-ap/bin/activate
+set -e  # stop on error
 
 echo "installing pipenv.."
 pip3 install pipenv
+
+echo "creating a virtual environment for Python3"
+pipenv --python 3.5
 
 echo "installing python packages (dependencies) using pipenv.."
 pipenv install
 
 echo "running APPLE picker.."
-python apple.py  -s 78  -o ../results/  ../../input
+pipenv run python3 apple.py  -s 78  -o ../results/  ../../input
 
-echo "done. you can check the results in the right column."
+echo "Done. You can check the results in the right column."
+
