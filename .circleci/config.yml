@@ -30,9 +30,9 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            pip3 install --upgrade pip
+            pip3 install --upgrade pip  --user
             echo "successfully upgraded pip"
-            sudo pip3 install pipenv
+            pip3 install pipenv --user
             echo "successfully installed pipenv."
             pipenv --python 3.6
             echo "successfully created pipenv environment."
