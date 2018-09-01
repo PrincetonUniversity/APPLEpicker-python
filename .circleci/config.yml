@@ -31,9 +31,9 @@ jobs:
           name: install dependencies
           command: |
             sudo apt install -y python3-pip --reinstall
-            pip3 install --upgrade pip  --user
+            sudo pip3 install --upgrade pip
             echo "successfully upgraded pip"
-            pip3 install pipenv --user
+            sudo pip3 install pipenv 
             echo "successfully installed pipenv."
             pipenv --python 3.6
             echo "successfully created pipenv environment."
