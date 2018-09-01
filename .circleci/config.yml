@@ -30,7 +30,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            apt install -y python3-pip --reinstall
+            sudo apt install -y python3-pip --reinstall
             pip3 install --upgrade pip  --user
             echo "successfully upgraded pip"
             pip3 install pipenv --user
