@@ -30,10 +30,11 @@ jobs:
       - run:
           name: install dependencies
           command: |
+            sudo apt-get install -y libfftw3-3 libfftw3-bin libfftw3-dbg libfftw3-dev libfftw3-doc libfftw3-double3 libfftw3-long3 libfftw3-mpi-dev libfftw3-mpi3 libfftw3-quad3 libfftw3-single3
             sudo apt install -y python3-pip --reinstall
             sudo pip3 install --upgrade pip
             echo "successfully upgraded pip"
-            sudo pip3 install pipenv 
+            sudo pip3 install pipenv setuptools
             echo "successfully installed pipenv."
             pipenv --python 3.6
             echo "successfully created pipenv environment."
