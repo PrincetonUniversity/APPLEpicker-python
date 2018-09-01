@@ -55,7 +55,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            . pipenv run pylint .
+            find . -iname "*.py" | xargs pipenv run  pylint
 
       - store_artifacts:
           path: test-reports
