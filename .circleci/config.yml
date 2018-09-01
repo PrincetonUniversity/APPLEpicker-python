@@ -55,7 +55,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            pipenv python lint.py
+            pipenv run python lint.py
 
       - store_artifacts:
           path: test-reports
