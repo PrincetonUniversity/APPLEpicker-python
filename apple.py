@@ -69,12 +69,12 @@ class Apple:
 
     def print_values(self):
         """Printing all parameters to screen."""
-        
-         try:
+
+        try:
             std_out_width = os.get_terminal_size().columns
         except OSError:
             std_out_width = 100
-        
+
         print(' Parameter Report '.center(std_out_width, '=') + '\n')
 
         params = ['particle_size',
