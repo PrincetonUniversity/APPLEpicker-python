@@ -39,6 +39,14 @@ class Picker:
         self.query_size -= self.query_size % 2
 
     def read_mrc(self):
+        """Gets and perprocesses micrograph.
+        
+        Reads the micrograph, applies binning and a low-pass filter.   
+        
+        Returns:
+            Micrograph image.
+        """
+        
         with mrcfile.open(self.filenames, mode='r+', permissive=True) as mrc:
             micro_img = mrc.data
 
@@ -53,6 +61,17 @@ class Picker:
         return micro_img
 
     def query_score(self, micro_img):
+        """Calculates score for each query image.
+        
+        Extracts query images and reference windows. Conmputes the cross-correlation between these 
+        windows, and applies a threshold to compute a score for each query image.
+        
+        Args:
+            micro_img: Micrograph image.
+            
+        Returns:
+            Matrix containing a score for each query image.
+        """
 
         query_box = PickerHelper.extract_query(micro_img, int(self.query_size / 2))
 
@@ -104,6 +123,21 @@ class Picker:
         return score
 
     def run_svm(self, micro_img, score):
+        """
+        Trains and uses an SVM classifier.
+        
+        Trains an SVM classifier to distinguish between noise and particle projections based on 
+        mean intensity and variance. Every possible window in the micrograph is then classified 
+        as either noise or particle, resulting in a segmentation of the micrograph.
+        
+        Args:
+            micro_img: Micrograph image.
+            score: Matrix containing a score for each query image.
+            
+        Returns:
+            Segmentation of the micrograph into noise and particle projections.
+        """
+        
         particle_windows = np.floor(self.tau1)
         non_noise_windows = np.ceil(self.tau2)
         bw_mask_p, bw_mask_n = Picker.get_maps(self, score, micro_img,
@@ -139,6 +173,16 @@ class Picker:
         return segmentation.copy()
 
     def morphology_ops(self, segmentation):
+        """
+        Discards suspected artifacts from segmentation.
+        
+        Args:
+            segmentation: Segmentation of the micrograph into noise and particle projections.
+            
+        Returns:
+            Segmentation of the micrograph into noise and particle projections.
+        """
+        
         if (binary_fill_holes(segmentation) == np.ones(segmentation.shape)).all():
             segmentation[0:100, 0:100] = np.zeros((100, 100))
 
@@ -172,6 +216,13 @@ class Picker:
         return segmentation_e
 
     def extract_particles(self, segmentation):
+        """
+        Saves particle centers into output .star file, afetr dismissing regions 
+        that are too big to contain a particle.
+        
+        Args:
+            segmentation: Segmentation of the micrograph into noise and particle projections.
+        """
         segmentation = segmentation[self.query_size // 2 - 1:-self.query_size // 2,
                                     self.query_size // 2 - 1:-self.query_size // 2]
         labeled_segments, _ = ndimage.label(segmentation, np.ones((3, 3)))
@@ -230,8 +281,19 @@ class Picker:
         with open(applepick_path, "w") as f:
             np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateY #1\n_rlnCoordinateX #2"], fmt='%s')
             np.savetxt(f, center, fmt='%d %d')
+            
+        return center
 
     def get_maps(self, score, micro_img, particle_windows, non_noise_windows):
+        """
+        Gets maps of regions from which to extract particle training for the SVM classifier.
+        
+        Args:
+            score: Matrix containing a score for each query image.
+            micro_img: Micrograph image.
+            particle_windows: Number of windows that must contain a particle.
+            non_noise_windows: Number of windows that must contain noise.
+        """
         idx = np.argsort(-np.reshape(score, (np.prod(score.shape)), 'F'))
 
         y = idx % score.shape[0]
@@ -262,3 +324,31 @@ class Picker:
                 end_row_idx[j] - begin_row_idx[j], end_col_idx[j] - begin_col_idx[j])
 
         return bw_mask_p, bw_mask_n
+    
+    def display_picks(self, centers):
+
+        with mrcfile.open(self.filenames, mode='r') as mrc:
+            micro_img = mrc.data
+
+        micro_img = np.double(micro_img)
+        micro_img = micro_img - np.amin(np.reshape(micro_img, (np.prod(micro_img.shape))))
+        picks = np.zeros(micro_img.shape)
+        for i in range(0, centers.shape[0]):
+            picks[int(centers[i, 1]), int(centers[i, 0])] = 1
+
+        # this func takes too long to complete
+        picks_dilate = binary_dilation(picks, structure=np.ones((2*self.particle_size, 2*self.particle_size)))
+
+        element = np.ones((2*self.particle_size, 2*self.particle_size))
+        element[0:5] = 0
+        element[-5:] = 0
+        element[:, 0:5] = 0
+        element[:, -5:] = 0
+
+        # this func takes even longer to complete
+        picks = np.logical_xor(picks_dilate, binary_dilation(picks, structure=element))
+
+        picks = np.ones(picks.shape) - picks
+        out_img = np.multiply(micro_img, picks)
+        image_path = os.path.join(self.output_directory, "sample_result.jpg")
+        misc.imsave(image_path, out_img)

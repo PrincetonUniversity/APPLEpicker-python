@@ -8,6 +8,7 @@ Created on Tue Jun 19 09:40:13 2018
 import argparse
 import glob
 import os
+
 import numpy as np
 
 from functools import partial
@@ -24,7 +25,6 @@ class Apple:
 
         self.particle_size = config.particle_size
         self.query_image_size = config.query_image_size
-        self.query_window_size = config.query_window_size
         self.max_particle_size = config.max_particle_size
         self.min_particle_size = config.min_particle_size
         self.minimum_overlap_amount = config.minimum_overlap_amount
@@ -68,6 +68,7 @@ class Apple:
         self.print_values()
 
     def print_values(self):
+        """Printing all parameters to screen."""
 
         try:
             std_out_width = os.get_terminal_size().columns
@@ -90,9 +91,17 @@ class Apple:
         for param in params:
             print('%(param)-40s %(value)-10s' % {"param": param, "value": getattr(self, param)})
 
-        print('\n' + ' Parameter Report '.center(std_out_width, '=') + '\n')
+        print('\n' + ' Progress Report '.center(std_out_width, '=') + '\n')
 
     def verify_input_values(self):
+        """Verify parameter values make sense.
+        
+        Sanity check for the attributes of this instanse of the Apple class.
+        
+        Raises:
+            ConfigError: Attribute is out of range.
+        """
+        
         if not 1 <= self.max_particle_size <= 3000:
             raise ConfigError("Error", "Max particle size must be in range [1, 3000]!")
 
@@ -133,6 +142,14 @@ class Apple:
             raise ConfigError("Error", "Please select at least one processor!")
 
     def pick_particles(self, mrc_dir):
+        """Initiate picking.
+        
+        Creates a pool of processes and initializes the process of particle picking on each micrograph. 
+        A single process is used per micrograph.
+        
+        Args:
+            mrc_dir: Directory containing the micrographs to be picked.
+        """
 
         # fetch all mrc files from mrc folder
         filenames = [os.path.basename(file) for file in glob.glob('{}/*.mrc'.format(mrc_dir))]
@@ -149,17 +166,35 @@ class Apple:
         data.append(self.minimum_overlap_amount)
         data.append(self.container_size)
         data.append(self.output_dir)
-
+        data.append(1)
+        
+        Apple.process_micrograph(data, filenames[0])
+        
+        data[10] = 0
+        filenames.remove(filenames[0])
+        
         pool = Pool(processes=self.proc)
         partial_func = partial(Apple.process_micrograph, data)
         pool.map(partial_func, filenames)
         pool.terminate()
 
     @staticmethod
-    def process_micrograph(data, filenames):
+    def process_micrograph(data, filename):
+        """Pick particles.
+        
+        Implemets the APPLE picker algorithm (Heimowitz, Andén and Singer, 
+        "APPLE picker: Automatic particle picking, a low-effort cryo-EM framework").
+        
+        Args:
+            data: list of parameters needed for the APPLE picking process.
+            filename: Name of micrograph for picking.
+            
+            Raises:
+                ConfigError: Incorrect format for micrograph file.
+        """
 
-        if not filenames.endswith('.mrc'):
-            raise ConfigError("Input file doesn't seem to be an MRC format! ({})".format(filenames))
+        if not filename.endswith('.mrc'):
+            raise ConfigError("Input file doesn't seem to be an MRC format! ({})".format(filename))
 
         input_dir = data[0]
         p_size = data[1]
@@ -171,15 +206,16 @@ class Apple:
         moa = data[7]
         c_size = data[8]
         output_dir = data[9]
+        show_image = data[10]
 
         # add path to filename
-        filename = os.path.join(input_dir, filenames)
+        filename = os.path.join(input_dir, filename)
 
         picker = Picker(p_size, max_size, min_size, q_size, tau1, tau2, moa, c_size, filename,
                         output_dir)
 
         # update user
-        print('Processing {}..'.format(os.path.basename(filenames)))
+        print('Processing {}..'.format(os.path.basename(filename)))
 
         # return .mrc file as a float64 array
         micro_img = picker.read_mrc()  # return a micrograph as an numpy array
@@ -207,7 +243,10 @@ class Apple:
         segmentation = picker.morphology_ops(segmentation)
 
         # create output star file
-        picker.extract_particles(segmentation)
+        centers = picker.extract_particles(segmentation)
+        
+        if show_image and ApplePickerConfig.create_jpg:
+            picker.display_picks(centers)
 
 
 if __name__ == "__main__":
