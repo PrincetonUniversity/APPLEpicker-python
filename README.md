@@ -18,7 +18,7 @@ If you haven't, clone the project to your local machine:
 
 Move into the root folder of the project: `cd APPLEpicker-python`, you should be able to see the file `apple.py` if you run `ls`.
 
-Now, create a virtual environment for Apple-Picker: `pipenv --python 3.5`
+Now, create a virtual environment for Apple-Picker: `pipenv --python 3.5` (or whatever Python 3.X you have)
 
 Install all dependencies: `pipenv install`
 
