@@ -324,28 +324,29 @@ class Picker:
         return bw_mask_p, bw_mask_n
     
     def display_picks(self, centers):
-        with mrcfile.open(self.filenames, mode='r+', permissive=True) as mrc:
+
+        with mrcfile.open(self.filenames, mode='r') as mrc:
             micro_img = mrc.data
 
         micro_img = np.double(micro_img)
-        
         micro_img = micro_img - np.amin(np.reshape(micro_img, (np.prod(micro_img.shape))))
-        
         picks = np.zeros(micro_img.shape)
         for i in range(0, centers.shape[0]):
             picks[int(centers[i, 1]), int(centers[i, 0])] = 1
-        
+
+        # this func takes too long to complete
         picks_dilate = binary_dilation(picks, structure=np.ones((2*self.particle_size, 2*self.particle_size)))
-        
+
         element = np.ones((2*self.particle_size, 2*self.particle_size))
         element[0:5] = 0
         element[-5:] = 0
         element[:, 0:5] = 0
         element[:, -5:] = 0
+
+        # this func takes even longer to complete
         picks = np.logical_xor(picks_dilate, binary_dilation(picks, structure=element))
+
         picks = np.ones(picks.shape) - picks
-        
-        out_img = np.multiply(micro_img, picks)        
+        out_img = np.multiply(micro_img, picks)
         image_path = os.path.join(self.output_directory, "sample_result.jpg")
         misc.imsave(image_path, out_img)
-        
