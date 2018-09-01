@@ -31,7 +31,11 @@ jobs:
           name: install dependencies
           command: |
             pip3 install pipenv
+            echo "successfully installed pipenv."
+            pipenv --python 3.6
+            echo "successfully created pipenv environment."
             pipenv install
+            echo "successfully installed all dependencies."
 
       - save_cache:
           paths:
