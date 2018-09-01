@@ -245,7 +245,7 @@ class Apple:
         # create output star file
         centers = picker.extract_particles(segmentation)
         
-        if show_image:
+        if show_image and ApplePickerConfig.create_jpg:
             picker.display_picks(centers)
 
 

@@ -15,3 +15,4 @@ class ApplePickerConfig(object):
     container_size = 450
     proc = 1
     output_dir = None
+    create_jpg = False
