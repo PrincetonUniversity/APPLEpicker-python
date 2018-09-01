@@ -4,7 +4,7 @@ Simply change the corresponding value to your preference and run apple.py
 """
 
 
-class ApplePickerConfig(object):
+class ApplePickerConfig:
     particle_size = None
     query_image_size = None
     max_particle_size = None
