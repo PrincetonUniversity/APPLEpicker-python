@@ -332,15 +332,15 @@ class Picker:
 
         micro_img = np.double(micro_img)
         micro_img = micro_img - np.amin(np.reshape(micro_img, (np.prod(micro_img.shape))))
-        picks = np.zeros(micro_img.shape)
+        picks = np.ones(micro_img.shape)
         for i in range(0, centers.shape[0]):
             y = int(centers[i, 1])
             x = int(centers[i, 0])
             d = int(np.floor(self.particle_size))
-            picks[y-d:y-d+5, x-d:x+d] = 1
-            picks[y+d:y+d+5, x-d:x+d] = 1
-            picks[y-d:y+d, x-d:x-d+5] = 1
-            picks[y-d:y+d, x+d:x+d+5] = 1
+            picks[y-d:y-d+5, x-d:x+d] = 0
+            picks[y+d:y+d+5, x-d:x+d] = 0
+            picks[y-d:y+d, x-d:x-d+5] = 0
+            picks[y-d:y+d, x+d:x+d+5] = 0
 
         out_img = np.multiply(micro_img, picks)
         image_path = os.path.join(self.output_directory, "sample_result.jpg")
