@@ -35,11 +35,12 @@ class Apple:
         self.output_dir = config.output_dir
 
         # set default values if needed
-        query_window_size = np.round(self.particle_size * 2 / 3)
-        query_window_size -= query_window_size % 4
-        query_window_size = int(query_window_size)
-
-        self.query_image_size = query_window_size
+        if self.query_image_size is None:
+            query_window_size = np.round(self.particle_size * 2 / 3)
+            query_window_size -= query_window_size % 4
+            query_window_size = int(query_window_size)
+    
+            self.query_image_size = query_window_size
 
         if self.max_particle_size is None:
             self.max_particle_size = self.particle_size * 2
