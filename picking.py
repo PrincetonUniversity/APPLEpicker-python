@@ -25,8 +25,8 @@ class Picker:
                  container_size, filenames, output_directory):
 
         self.particle_size = int(particle_size / 2)
-        self.max_size = int(max_size / 4)
-        self.min_size = int(min_size / 4)
+        self.max_size = int(max_size / 2)
+        self.min_size = int(min_size / 2)
         self.query_size = int(query_size / 2)
         self.query_size -= self.query_size % 2
         self.tau1 = tau1
