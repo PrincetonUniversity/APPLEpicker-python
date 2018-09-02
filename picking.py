@@ -39,7 +39,7 @@ class Picker:
         self.query_size -= self.query_size % 2
 
     def read_mrc(self):
-        """Gets and perprocesses micrograph.
+        """Gets and preprocesses micrograph.
         
         Reads the micrograph, applies binning and a low-pass filter.   
         
@@ -63,7 +63,7 @@ class Picker:
     def query_score(self, micro_img):
         """Calculates score for each query image.
         
-        Extracts query images and reference windows. Conmputes the cross-correlation between these 
+        Extracts query images and reference windows. Computes the cross-correlation between these 
         windows, and applies a threshold to compute a score for each query image.
         
         Args:
