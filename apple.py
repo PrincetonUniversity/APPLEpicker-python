@@ -97,7 +97,7 @@ class Apple:
     def verify_input_values(self):
         """Verify parameter values make sense.
         
-        Sanity check for the attributes of this instanse of the Apple class.
+        Sanity check for the attributes of this instance of the Apple class.
         
         Raises:
             ConfigError: Attribute is out of range.
