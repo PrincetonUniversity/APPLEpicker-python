@@ -52,6 +52,7 @@ class Picker:
 
         micro_img = micro_img.astype('float')
         micro_img = micro_img[99:-100, 99:-100]
+        micro_img = micro_img[0 : min(micro_img.shape[0], micro_img.shape[1]), 0 : min(micro_img.shape[0], micro_img.shape[1])]
         micro_img = misc.imresize(micro_img, 0.5, mode='F', interp='cubic')
 
         gauss_filter = PickerHelper.gaussian_filter(15, 0.5)
