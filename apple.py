@@ -53,8 +53,7 @@ class Apple:
 
         if self.output_dir is None:
             path = os.path.dirname(mrc_dir)
-            abs_path = os.path.abspath(mrc_dir)
-            self.output_dir = abs_path.replace(path, 'star_dir')
+            self.output_dir = os.path.join(path, "star_dir")
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
