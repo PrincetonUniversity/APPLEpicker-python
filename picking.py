@@ -280,7 +280,7 @@ class Picker:
 
         applepick_path = os.path.join(self.output_directory, "{}_applepick.star".format(name_str))
         with open(applepick_path, "w") as f:
-            np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateY #1\n_rlnCoordinateX #2"], fmt='%s')
+            np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateX #1\n_rlnCoordinateY #2"], fmt='%s')
             np.savetxt(f, center, fmt='%d %d')
             
         return center
