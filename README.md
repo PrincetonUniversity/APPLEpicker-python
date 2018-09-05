@@ -1,7 +1,10 @@
-# apple-picker-python
+# APPLEpicker-python
+## Automatic Particle Picking, a Low-Effort Cryo-EM Framework
 
-This is the Python version of Apple-Picker project.
-If you are looking for the MATLAB version, you can find it [Here](https://github.com/PrincetonUniversity/APPLEpicker).
+This is the Python version of APPLE picker, a particle picker for single-particle cryo-electron microscopy (cryo-EM).
+For more information on the algorithm, please see the [paper](https://arxiv.org/abs/1802.00469).
+
+If you are looking for the MATLAB version, please see the [APPLEpicker page](https://github.com/PrincetonUniversity/APPLEpicker).
 
 Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about Apple-Picker.
 
