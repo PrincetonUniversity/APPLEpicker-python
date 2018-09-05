@@ -38,11 +38,12 @@ class Apple:
         self.mrc_dir = mrc_dir
 
         # set default values if needed
-        query_window_size = np.round(self.particle_size * 2 / 3)
-        query_window_size -= query_window_size % 4
-        query_window_size = int(query_window_size)
-
-        self.query_image_size = query_window_size
+        if self.query_image_size is None:
+            query_window_size = np.round(self.particle_size * 2 / 3)
+            query_window_size -= query_window_size % 4
+            query_window_size = int(query_window_size)
+    
+            self.query_image_size = query_window_size
 
         if self.max_particle_size is None:
             self.max_particle_size = self.particle_size * 2
@@ -99,7 +100,7 @@ class Apple:
     def verify_input_values(self):
         """Verify parameter values make sense.
         
-        Sanity check for the attributes of this instanse of the Apple class.
+        Sanity check for the attributes of this instance of the Apple class.
         
         Raises:
             ConfigError: Attribute is out of range.

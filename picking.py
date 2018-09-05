@@ -25,8 +25,8 @@ class Picker:
                  container_size, filenames, output_directory):
 
         self.particle_size = int(particle_size / 2)
-        self.max_size = int(max_size / 4)
-        self.min_size = int(min_size / 4)
+        self.max_size = int(max_size / 2)
+        self.min_size = int(min_size / 2)
         self.query_size = int(query_size / 2)
         self.query_size -= self.query_size % 2
         self.tau1 = tau1
@@ -39,7 +39,7 @@ class Picker:
         self.query_size -= self.query_size % 2
 
     def read_mrc(self):
-        """Gets and perprocesses micrograph.
+        """Gets and preprocesses micrograph.
         
         Reads the micrograph, applies binning and a low-pass filter.   
         
@@ -52,6 +52,9 @@ class Picker:
 
         micro_img = micro_img.astype('float')
         micro_img = micro_img[99:-100, 99:-100]
+        micro_img = micro_img[0: min(micro_img.shape[0], micro_img.shape[1]),
+                              0: min(micro_img.shape[0], micro_img.shape[1])]
+
         micro_img = misc.imresize(micro_img, 0.5, mode='F', interp='cubic')
 
         gauss_filter = PickerHelper.gaussian_filter(15, 0.5)
@@ -63,7 +66,7 @@ class Picker:
     def query_score(self, micro_img):
         """Calculates score for each query image.
         
-        Extracts query images and reference windows. Conmputes the cross-correlation between these 
+        Extracts query images and reference windows. Computes the cross-correlation between these 
         windows, and applies a threshold to compute a score for each query image.
         
         Args:
@@ -228,7 +231,7 @@ class Picker:
         labeled_segments, _ = ndimage.label(segmentation, np.ones((3, 3)))
         values, repeats = np.unique(labeled_segments, return_counts=True)
 
-        values_to_remove = np.where(repeats > self.query_size ** 2)
+        values_to_remove = np.where(repeats > self.max_size ** 2)
         values = np.take(values, values_to_remove)
         values = np.reshape(values, (1, 1, np.prod(values.shape)), 'F')
 
@@ -279,7 +282,7 @@ class Picker:
 
         applepick_path = os.path.join(self.output_directory, "{}_applepick.star".format(name_str))
         with open(applepick_path, "w") as f:
-            np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateY #1\n_rlnCoordinateX #2"], fmt='%s')
+            np.savetxt(f, ["data_root\n\nloop_\n_rlnCoordinateX #1\n_rlnCoordinateY #2"], fmt='%s')
             np.savetxt(f, center, fmt='%d %d')
             
         return center
@@ -332,23 +335,16 @@ class Picker:
 
         micro_img = np.double(micro_img)
         micro_img = micro_img - np.amin(np.reshape(micro_img, (np.prod(micro_img.shape))))
-        picks = np.zeros(micro_img.shape)
+        picks = np.ones(micro_img.shape)
         for i in range(0, centers.shape[0]):
-            picks[int(centers[i, 1]), int(centers[i, 0])] = 1
+            y = int(centers[i, 1])
+            x = int(centers[i, 0])
+            d = int(np.floor(self.particle_size))
+            picks[y-d:y-d+5, x-d:x+d] = 0
+            picks[y+d:y+d+5, x-d:x+d] = 0
+            picks[y-d:y+d, x-d:x-d+5] = 0
+            picks[y-d:y+d, x+d:x+d+5] = 0
 
-        # this func takes too long to complete
-        picks_dilate = binary_dilation(picks, structure=np.ones((2*self.particle_size, 2*self.particle_size)))
-
-        element = np.ones((2*self.particle_size, 2*self.particle_size))
-        element[0:5] = 0
-        element[-5:] = 0
-        element[:, 0:5] = 0
-        element[:, -5:] = 0
-
-        # this func takes even longer to complete
-        picks = np.logical_xor(picks_dilate, binary_dilation(picks, structure=element))
-
-        picks = np.ones(picks.shape) - picks
         out_img = np.multiply(micro_img, picks)
         image_path = os.path.join(self.output_directory, "sample_result.jpg")
         misc.imsave(image_path, out_img)
