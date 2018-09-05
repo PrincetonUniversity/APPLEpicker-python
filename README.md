@@ -1,7 +1,7 @@
 # apple-picker-python
 
 This is the Python version of Apple-Picker project.
-If you are looking for the MATLAB version, you can find it [Here](https://github.com/PrincetonUniversity/APPLEpicker-python).
+If you are looking for the MATLAB version, you can find it [Here](https://github.com/PrincetonUniversity/APPLEpicker).
 
 Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about Apple-Picker.
 
@@ -26,7 +26,11 @@ You're all set! You can now run Apple-Picker within your newly created virtualen
 
 `pipenv run python3 apple.py -s particle_size my_mrc_folder`
 
-The ourput files will be placed in a new folder called `star_dir` next to `my_mrc_folder`. You can also specify another output directory using flag `-o output_dir`.
+The ourput files will be placed in a new folder called `star_dir` next to `my_mrc_folder`. You can also specify another output directory using flag `-o output_dir`. 
+
+If you want Apple-Picker to create a JPG image of the result, pass a flag `--jpg`. 
+
+To see help text simply pass -h or --help.
 
 You can override more default values by editing file `config.py`
 
