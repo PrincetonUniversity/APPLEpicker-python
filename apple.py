@@ -55,9 +55,8 @@ class Apple:
             self.minimum_overlap_amount = int(self.particle_size / 10)
 
         if self.output_dir is None:
-            path = os.path.dirname(self.mrc_dir)
             abs_path = os.path.abspath(self.mrc_dir)
-            self.output_dir = abs_path.replace(path, 'star_dir')
+            self.output_dir = os.path.join(os.path.dirname(abs_path), 'star_dir')
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
