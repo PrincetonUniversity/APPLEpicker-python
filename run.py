@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 from apple.apple import Apple
 from apple.config import ApplePickerConfig
@@ -34,6 +35,15 @@ if args.o:
 
 if args.jpg:
     ApplePickerConfig.create_jpg = True
+
+
+if not os.path.exists(args.mrcdir):
+    print("mrc folder {} doesn't' exist! terminating..".format(args.mrcdir))
+    sys.exit(1)
+
+if not os.listdir(args.mrcdir):
+    print("mrc folder is empty! terminating..")
+    sys.exit(1)
 
 apple = Apple(ApplePickerConfig, args.mrcdir)
 apple.pick_particles()
