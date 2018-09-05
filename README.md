@@ -27,7 +27,7 @@ Install all dependencies: `pipenv install`.
 
 You're all set! You can now run Apple-Picker within your newly created virtualenv:
 
-`pipenv run python3 apple.py -s particle_size mrc_dir`
+`pipenv run python3 run.py -s particle_size mrc_dir`
 
 where `particle_size` is the expected size of the particles in pixels and `mrc_dir` is the folder containing the micrographs. The ourput files will be placed in a new folder called `star_dir` in the same parent folder as `mrc_dir`. You can also specify another output directory using flag `-o output_dir`.
 
