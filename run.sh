@@ -24,6 +24,6 @@ echo "installing python packages (dependencies) using pipenv.."
 pipenv install
 
 echo "running APPLE picker.."
-pipenv run python3 apple.py  -s 78 --jpg -o ../results/  ../../input
+pipenv run python3 run.py  -s 78 --jpg -o ../results/  ../../input
 
 echo "Done. You can check the results in the right column."

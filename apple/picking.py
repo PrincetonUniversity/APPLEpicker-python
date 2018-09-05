@@ -10,13 +10,11 @@ import mrcfile
 import numpy as np
 import pyfftw
 
-import scipy_signaling_patch  # don't remove. check out the file for details
-
 from scipy import ndimage, misc, signal
 from scipy.ndimage import binary_fill_holes, binary_erosion, binary_dilation, center_of_mass
 from sklearn import svm, preprocessing
 
-from helper import PickerHelper
+from apple.helper import PickerHelper
 
 
 class Picker:

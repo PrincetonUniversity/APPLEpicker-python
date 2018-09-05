@@ -5,7 +5,7 @@ Created on Tue Jun 19 09:40:13 2018
 
 @author: Ayelet Heimowitz, Itay Sason
 """
-import argparse
+
 import glob
 import os
 
@@ -14,9 +14,9 @@ import numpy as np  # pylint: disable=wrong-import-order
 from multiprocessing import Pool
 from functools import partial
 
-from exceptions import ConfigError
-from picking import Picker
-from config import ApplePickerConfig
+from apple.exceptions import ConfigError
+from apple.picking import Picker
+from apple.config import ApplePickerConfig
 
 
 class Apple:
@@ -246,35 +246,3 @@ class Apple:
         
         if show_image and ApplePickerConfig.create_jpg:
             picker.display_picks(centers)
-
-
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='Apple Picker')
-    parser.add_argument("-s", type=int, metavar='my_particle_size', help="size of particle")
-    parser.add_argument("--jpg", action='store_true', help="create result image")
-    parser.add_argument("-o", type=str, metavar="output dir",
-                        help="name of output folder where star file should be saved (by default "
-                             "AP saves to input folder and adds 'picked' to original file name.)")
-
-    parser.add_argument("mrcdir", metavar='input dir', type=str,
-                        help="path to folder containing all mrc files to pick.")
-
-    args = parser.parse_args()
-
-    if args.s:
-        ApplePickerConfig.particle_size = args.s
-
-    if ApplePickerConfig.particle_size is None:
-        raise Exception("particle size is not defined! either set it with -s or adjust config.py")
-
-    if args.o:
-        if not os.path.exists(args.o):
-            raise ConfigError("Output directory doesn't exist! {}".format(args.o))
-        ApplePickerConfig.output_dir = args.o
-
-    if args.jpg:
-        ApplePickerConfig.create_jpg = True
-
-    apple = Apple(ApplePickerConfig, args.mrcdir)
-    apple.pick_particles()
