@@ -9,10 +9,10 @@ import argparse
 import glob
 import os
 
-import numpy as np
+import numpy as np  # pylint: disable=wrong-import-order
 
-from functools import partial
 from multiprocessing import Pool
+from functools import partial
 
 from exceptions import ConfigError
 from picking import Picker
@@ -20,6 +20,7 @@ from config import ApplePickerConfig
 
 
 class Apple:
+    """ This class is the layer between the user and the picking algorithm. """
 
     def __init__(self, config, mrc_dir):
 
@@ -33,6 +34,8 @@ class Apple:
         self.container_size = config.container_size
         self.proc = config.proc
         self.output_dir = config.output_dir
+        self.create_jpg = config.create_jpg
+        self.mrc_dir = mrc_dir
 
         # set default values if needed
         query_window_size = np.round(self.particle_size * 2 / 3)
@@ -51,8 +54,8 @@ class Apple:
             self.minimum_overlap_amount = int(self.particle_size / 10)
 
         if self.output_dir is None:
-            path = os.path.dirname(mrc_dir)
-            abs_path = os.path.abspath(mrc_dir)
+            path = os.path.dirname(self.mrc_dir)
+            abs_path = os.path.abspath(self.mrc_dir)
             self.output_dir = abs_path.replace(path, 'star_dir')
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
@@ -141,22 +144,18 @@ class Apple:
         if self.proc < 1:
             raise ConfigError("Error", "Please select at least one processor!")
 
-    def pick_particles(self, mrc_dir):
-        """Initiate picking.
+    def pick_particles(self):
+        """ Initiate picking.
         
-        Creates a pool of processes and initializes the process of particle picking on each micrograph. 
-        A single process is used per micrograph.
-        
-        Args:
-            mrc_dir: Directory containing the micrographs to be picked.
-        """
+            Creates a pool of processes and initializes the process of particle
+            picking on each micrograph. A single process is used per micrograph. """
 
         # fetch all mrc files from mrc folder
-        filenames = [os.path.basename(file) for file in glob.glob('{}/*.mrc'.format(mrc_dir))]
+        filenames = [os.path.basename(file) for file in glob.glob('{}/*.mrc'.format(self.mrc_dir))]
         print("converting {} mrc files..".format(len(filenames)))
 
         data = list()
-        data.append(mrc_dir)
+        data.append(self.mrc_dir)
         data.append(self.particle_size)
         data.append(self.max_particle_size)
         data.append(self.min_particle_size)
@@ -253,6 +252,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Apple Picker')
     parser.add_argument("-s", type=int, metavar='my_particle_size', help="size of particle")
+    parser.add_argument("--jpg", action='store_true', help="create result image")
     parser.add_argument("-o", type=str, metavar="output dir",
                         help="name of output folder where star file should be saved (by default "
                              "AP saves to input folder and adds 'picked' to original file name.)")
@@ -273,5 +273,8 @@ if __name__ == "__main__":
             raise ConfigError("Output directory doesn't exist! {}".format(args.o))
         ApplePickerConfig.output_dir = args.o
 
+    if args.jpg:
+        ApplePickerConfig.create_jpg = True
+
     apple = Apple(ApplePickerConfig, args.mrcdir)
-    apple.pick_particles(args.mrcdir)
+    apple.pick_particles()
