@@ -105,3 +105,6 @@ venv.bak/
 
 # Pycharm
 .idea/*
+
+# avoid falling back to old habbits
+requirements.txt

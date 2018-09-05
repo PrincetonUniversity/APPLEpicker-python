@@ -38,6 +38,13 @@ To see help text, simply pass `-h` or `--help`.
 You can override more default values by editing the file `config.py`
 
 ### Troubleshooting
+###### where is requirements.txt?
+If you prefer working directly with pip and requirements.txt,
+you can run the following command to extract the dependencies:
+`pipenv run pip freeze > requirements.txt`. 
+Then run `pip install -r requirements.txt`.
+
+###### can't install dependencies?
 While running `pipenv install`, you might run into problems because of missing Linux packages.
 
 Try to install the missing packages using
