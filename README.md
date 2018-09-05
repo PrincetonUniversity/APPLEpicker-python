@@ -6,7 +6,7 @@ For more information on the algorithm, please see the [paper](https://arxiv.org/
 
 If you are looking for the MATLAB version, please see the [APPLEpicker page](https://github.com/PrincetonUniversity/APPLEpicker).
 
-Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about Apple-Picker.
+Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about the APPLE picker.
 
 ## Installation Process (Linux, Debian based OS)
 First, verify that your machine has Python 3.5 (or newer) installed by running: `python3 -V`
