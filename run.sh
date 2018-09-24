@@ -14,8 +14,6 @@ if [ ! -f /.dockerenv ]; then
         exit
 fi
 
-echo "installing pipenv.."
-pip3 install pipenv
 
 echo "creating a virtual environment for Python3"
 pipenv --python 3.5
