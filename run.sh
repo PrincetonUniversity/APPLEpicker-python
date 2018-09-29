@@ -7,21 +7,15 @@
 
 set -e  # stop on error
 
-# verify we're running on Code Ocean
+# verify we're running on CodeOcean
 if [ ! -f /.dockerenv ]; then
         echo "This script is meant to run only on Code-Ocean platform."
         echo "Please check https://codeocean.com/capsule/4705dc64-1815-48ec-882c-a803aea53908/code."
         exit
 fi
 
-
-echo "creating a virtual environment for Python3"
-pipenv --python 3.5
-
-echo "installing python packages (dependencies) using pipenv.."
-pipenv install
-
-echo "running APPLE picker.."
-pipenv run python3 run.py  -s 78 --jpg -o ../results/  ../../input
+echo "running ApplePicker.."
+python3 run.py  -s 78  --jpg  -o /results  /data
 
 echo "Done. You can check the results in the right column."
+
