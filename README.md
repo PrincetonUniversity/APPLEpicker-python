@@ -8,6 +8,11 @@ If you are looking for the MATLAB version, please see the [APPLEpicker page](htt
 
 Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about the APPLE picker.
 
+## CodeOcean capsule
+In order to showcase Apple-Picker, we created a [CodeOcean](https://codeocean.com) capsule so you can try the Python version hands on, with your own input, and with different configurations - to your liking. 
+Using CodeOcean you can skip the installation process.
+You can view the capsule [here](https://codeocean.com/2018/10/01/apple-picker-python).
+
 ## Installation Process (Linux, Debian based OS)
 First, verify that your machine has Python 3.5 (or newer) installed by running: `python3 -V`
 
