@@ -276,6 +276,6 @@ class PickerHelper:
         fft_class2(var_freq, var_all)
         var_all = np.real(var_all) - np.power(mean_all, 2)
 
-        std_all = np.sqrt(var_all)
+        std_all = np.sqrt(np.maximum(0, var_all))
 
         return mean_all, std_all
