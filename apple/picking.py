@@ -274,9 +274,8 @@ class Picker:
         center[:, 1] = center[:, 0]
         center[:, 0] = col_2[:]
 
-        name_list = self.filenames.split("/")
-        name = name_list[-1].split(".")
-        name_str = name[0]
+        basename = os.path.basename(self.filenames)
+        name_str, ext = os.path.splitext(basename)
 
         applepick_path = os.path.join(self.output_directory, "{}_applepick.star".format(name_str))
         with open(applepick_path, "w") as f:
