@@ -2,7 +2,7 @@
 """
 Created on Thu Jun 21 11:25:48 2018
 
-@author: Ayelet Heimowitz, Itay Sason
+@author: Ayelet Heimowitz, Itay Sason, Joakim Andén, Robbie Brook
 """
 
 import numpy as np

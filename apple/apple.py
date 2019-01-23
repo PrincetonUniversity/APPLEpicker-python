@@ -3,7 +3,7 @@
 """
 Created on Tue Jun 19 09:40:13 2018
 
-@author: Ayelet Heimowitz, Itay Sason
+@author: Ayelet Heimowitz, Itay Sason, Joakim Andén, Robbie Brook
 """
 
 import glob
