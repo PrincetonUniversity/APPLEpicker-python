@@ -1,6 +1,6 @@
 """
 In this module we can force other defaults from the default values.
-Simply change the corresponding value to your preference and run apple.py
+Simply change the corresponding value to your preference and run run.py
 """
 
 

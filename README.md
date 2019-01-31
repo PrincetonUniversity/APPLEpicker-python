@@ -24,7 +24,7 @@ If you haven't already, clone the project to your local machine:
 
 `git clone https://github.com/PrincetonUniversity/APPLEpicker-python.git`
 
-Move into the root folder of the project: `cd APPLEpicker-python`. You should be able to see the file `apple.py` if you run `ls`.
+Move into the root folder of the project: `cd APPLEpicker-python`. You should be able to see the file `run.py` if you run `ls`.
 
 Now create a virtual environment for Apple-Picker: `pipenv --python 3.5` (or whatever Python version you have).
 
