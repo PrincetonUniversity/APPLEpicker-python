@@ -10,24 +10,24 @@ Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips an
 
 ## Installation Instructions (Linux/Mac OS X/Windows)
 
-To simplify the installation process we suggest to install Anaconda 64-bit for your platform, and use the provided `environment.yml` file 
-to build a Conda environment to run APPLEpicker. The downloading and installation of ANACONDA3 Python distribution can be found on the [website](https://www.anaconda.com/distribution/).
-After the Anaconda3 is ready, please follow the steps as below:  
+Install Anaconda 64-bit for your platform from [website](https://www.anaconda.com/distribution/).
+
+Next, run
 
 ```
 git clone https://github.com/PrincetonUniversity/APPLEpicker-python.git
 cd /path/to/git/clone/folder
 conda env create -f environment.yml
-conda activate apple
 ```
 
-You're all set! You can now run Apple-Picker within your newly created apple enviroment:
+You're all set! You can now run the APPLE-Picker within your newly created apple enviroment:
 
-`python run.py -s particle_size mrc_dir`
+`conda activate apple
+python run.py -s particle_size mrc_dir`
 
 where `particle_size` is the expected size of the particles in pixels and `mrc_dir` is the folder containing the micrographs. The ourput files will be placed in a new folder called `star_dir` in the same parent folder as `mrc_dir`. You can also specify another output directory using flag `-o output_dir`.
 
-If you want Apple-Picker to create a JPG image of the result, pass the flag `--jpg`.
+If you want APPLE-Picker to create a JPG image of the result, pass the flag `--jpg`.
 
 To see help text, simply pass `-h` or `--help`.
 
