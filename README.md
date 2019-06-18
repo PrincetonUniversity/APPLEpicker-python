@@ -8,13 +8,11 @@ If you are looking for the MATLAB version, please see the [APPLEpicker page](htt
 
 Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips and tricks about the APPLE picker.
 
-## Installation Instructions
-
-### Linux/Mac OS X/Windows
+## Installation Instructions (Linux/Mac OS X/Windows)
 
 To simplify the installation process we suggest to install Anaconda 64-bit for your platform, and use the provided `environment.yml` file 
-to build a Conda environment to run APPLEpicker. The downloading and installation of ANACONDA3 can be found on [website](https://www.anaconda.com/distribution/).
-After the ANACONDA3 is ready, please follow the steps as below:  
+to build a Conda environment to run APPLEpicker. The downloading and installation of ANACONDA3 Python distribution can be found on the [website](https://www.anaconda.com/distribution/).
+After the Anaconda3 is ready, please follow the steps as below:  
 
 ```
 git clone https://github.com/PrincetonUniversity/APPLEpicker-python.git
@@ -23,7 +21,7 @@ conda env create -f environment.yml
 conda activate apple
 ```
 
-You're all set! You can now run Apple-Picker within your newly created virtualenv:
+You're all set! You can now run Apple-Picker within your newly created apple enviroment:
 
 `python run.py -s particle_size mrc_dir`
 
