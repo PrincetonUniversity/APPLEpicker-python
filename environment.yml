@@ -1,0 +1,24 @@
+name: 'applepicker'
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - ipython
+  - fftw
+  - make
+  - numpy=1.14.2
+  - pip
+  - pytest
+  - python=3.6
+  - scikit-image
+  - scikit-learn
+  - scipy=0.19.1
+
+  - pip:
+    - mrcfile
+    - pyfftw
+    - pytest-cov
+    - setuptools
+    - pylint 
