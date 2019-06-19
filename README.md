@@ -25,7 +25,7 @@ You're all set! You can now run the APPLE-Picker within your newly created apple
 `conda activate apple
 python run.py -s particle_size mrc_dir`
 
-where `particle_size` is the expected size of the particles in pixels and `mrc_dir` is the folder containing the micrographs. The ourput files will be placed in a new folder called `star_dir` in the same parent folder as `mrc_dir`. You can also specify another output directory using flag `-o output_dir`.
+where `particle_size` is the expected size of the particles in pixels and `mrc_dir` is the folder containing the micrographs. The output files will be placed in a new folder called `star_dir` in the same parent folder as `mrc_dir`. You can also specify another output directory using flag `-o output_dir`.
 
 If you want APPLE-Picker to create a JPG image of the result, pass the flag `--jpg`.
 
