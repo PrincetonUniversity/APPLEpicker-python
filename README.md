@@ -10,7 +10,7 @@ Make sure to [subscribe](http://eepurl.com/dFmFfn) to important updates, tips an
 
 ## Installation Instructions (Linux/Mac OS X/Windows)
 
-Install Anaconda 64-bit for your platform from [here](https://www.anaconda.com/distribution/).
+Install [Anaconda](https://www.anaconda.com/distribution/) 64-bit for your platform.
 
 Next, run
 
